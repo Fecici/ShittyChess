@@ -32,6 +32,7 @@ bool isCastled(Move move) {
 }
 
 uint8_t getPromotion(Move move) {
+    
     return (move & promoMask) >> 12;
 }
 
@@ -46,4 +47,11 @@ uint8_t getCapturedType(Move move) {
 
 uint8_t getCapturedColour(Move move) {
     return getCapturedPieceCode(move) >> 3;
+}
+
+int getMoveCount(uint64_t gameState) {
+
+
+    /// TODO: need to design the gamestate format
+    return 0;
 }

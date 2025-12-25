@@ -4,3 +4,4 @@
 
 void getCommand();
 
+///TODO: make commands interface

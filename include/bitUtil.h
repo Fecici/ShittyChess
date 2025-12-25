@@ -22,5 +22,6 @@ uint8_t getPromotion(Move move);
 uint8_t getCapturedPieceCode(Move move);
 uint8_t getCapturedType(Move move);
 uint8_t getCapturedColour(Move move);
+int     getMoveCount(uint64_t gameState);
 
 #endif
