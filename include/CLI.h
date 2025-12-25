@@ -30,17 +30,28 @@ typedef struct {
 
 typedef struct {
 
+    uint64_t hashHistory[MAX_PLY];
+    Move moveHistory[MAX_PLY];
+    Undo undoHistory[MAX_PLY];
+
+    
+} History;
+
+typedef struct {
+
     UI ui;
     Board* board;
     Player white, black;
     unsigned int moves;  // 2ply = 1 move
     unsigned int ply;
+    /// TODO: time control eventually
+    unsigned int whiteTime, blackTime;
     uint8_t gameResult;  // format to be defined, but basically its a flag that describes how the game ended
-
+    History history;
 } Game;
 
 void initPlayer(Player* p, PlayerType type, uint8_t colour, Engine* engine);
-void initGame(Game* game, UI ui);
+Game initGame();  // init all, setup history, ui, etc.
 void getCommand();
 void handleCommand();
 void setUI(Game* game, UI ui);
