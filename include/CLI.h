@@ -5,6 +5,7 @@
 #include "printUtils.h"
 #include "ui.h"
 #include "engine.h"
+#include "zobrist.h"
 
 typedef enum {human, engine} PlayerType;
 enum Command {
@@ -58,6 +59,11 @@ void setUI(Game* game, UI ui);
 void checkTermination(Board* b);
 void handleStalemate(Board* b);
 void handleCheckmate(Board* b);
+
+bool loadFromFen(Board* b, const char* fen);
+bool isCharInt(const char c);
+unsigned int getPieceFromChar(const char c);
+char* convertToFen(Board* b);
 
 void cliMainLoop(Game* game, void (*performCommand)(Board* b));
 Move getmove(Board* b);

@@ -19,5 +19,9 @@ int main() {
 
     // on exit, print exit information
 
+
+
+    Game cli = initGame();
+
     return 0;
 }

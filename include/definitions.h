@@ -23,11 +23,20 @@ static const uint32_t promoMask         = 0x00007000;
 static const uint32_t targetMask        = 0x00000FC0;
 static const uint32_t sourceMask        = 0x0000003F;
 
+static const uint32_t GS_castlingRightsMask  = 0x0000000F;
+static const uint32_t GS_enpassantSquareMask = 0x000003F0;
+static const uint32_t GS_halfmoveClockMask   = 0x0001FC00;
+static const uint32_t GS_colourtoMoveMask    = 0x00020000;
+
+static const uint8_t whiteLongCastleMask  = 0x1;
+static const uint8_t whiteShortCastleMask = 0x2;
+static const uint8_t blackLongCastleMask  = 0x4;
+static const uint8_t blackShortCastleMask = 0x8;
+
 // stuff here stores data to make undoing trivial
 typedef struct {
     uint64_t zobrist;
     uint8_t captured;
-
     uint8_t enpassant;
     uint8_t castling_rights;
     uint8_t halftime;  // 50 move thing
@@ -38,15 +47,22 @@ typedef struct {
 // hold bit boards for the game. will also store game meta data like castling rights, enpassant, etc.
 typedef struct {
 
+    Piece    pieces[64];    // board-centrix view of pieces because this is cheap and convenient
     uint64_t bitboards[12];   // stores all bitboards, indexed by iCT for Colour, Type = CT
     uint64_t boardUnions[3];  // eg all white, all black, all pieces - "blockers"
-    Piece    pieces[64];    // board-centrix view of pieces because this is cheap and convenient
-    Gamestack* gamestack;   // idk if i need this
-    // gameState format:
-    // _ _ _ _ _ _ _ _ | _ _ _ _ _ _ _ _ | _ _ _ _ _ _ _ _ | _ _ _ _ _ _ _ _ | _ _ _ _ _ _ _ _ | _ _ _ _ _ _ _ _ | _ _ _ _ _ _ _ _ | _ _ _ _ _ _ _ _ |
-    //
-    uint64_t gameState;
     uint64_t zobrist;  // updated incrementally each move or undo via xor
+    Gamestack* gamestack;   // idk if i need this
+
+    // gameState format:
+    // _ _ _ _ _ _ _ _ | _ _ _ _ _ _ T H | H H H H H H E E | E E E E C C C C 
+    // colour to move | halfmove clock (50 move counter) | ep square (0 for none because 0 = a1 is never ep) | castling rights
+    // The halfmove clock specifies a decimal number of half moves with respect to the 50 move draw rule. 
+    // It is reset to zero after a capture or a pawn move and incremented otherwise.
+
+    // castling rights: _ _ _ _ | black short, black long, white short, white long
+
+    uint32_t gameState;
+    unsigned int ply;  // 0 initially. >> 1 to get full move clock. 
 } Board;
 
 // these update in parallel. undo holds metadata for easy undo of boards
@@ -89,6 +105,8 @@ enum PieceIndex {
     iBQ,
     iBK
 };
+
+enum Colour {WHITE, BLACK};
 
 typedef enum {
 

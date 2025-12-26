@@ -3,6 +3,6 @@
 
 
 #include "definitions.h"
-
+#include "CLI.h"
 
 #endif

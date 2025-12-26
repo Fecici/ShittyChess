@@ -13,23 +13,6 @@ void printGameState(Board* b) {
 
 void printBoard(Board* b) {
 // UNTESTED: need to do this
-
-    char pieceCodes[12][2] = {
-
-        "WP",
-        "WN",
-        "WB",
-        "WR",
-        "WQ",
-        "WK",
-        "BP",
-        "BN",
-        "BB",
-        "BR",
-        "BQ",
-        "BK"
-    };
-
     Piece* arr = b->pieces;
     
     printf("+----+----+----+----+----+----+----+----+");

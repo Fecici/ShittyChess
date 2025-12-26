@@ -12,5 +12,22 @@ void printZobrist(Board* b);
 void printColour(Board* b);
 
 
+static char pieceCodes[12][2] = {
+
+        "WP",
+        "WN",
+        "WB",
+        "WR",
+        "WQ",
+        "WK",
+        "BP",
+        "BN",
+        "BB",
+        "BR",
+        "BQ",
+        "BK"
+    };
+
+
 
 #endif
