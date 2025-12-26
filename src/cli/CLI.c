@@ -148,6 +148,7 @@ bool loadFromFen(Board* b, const char* fen) {
 
     for (int i = 0; i < 8; i++) { 
         for (int j = 0; j < 9; j++) {  // do +9 because of the '/'
+            /// TODO: this is incorrect because of empty spaces
             k = i * 9 + j;
             if (j == 8) {
                 if (fen[k] != '/') return false;
@@ -160,7 +161,7 @@ bool loadFromFen(Board* b, const char* fen) {
                 continue;
             }
 
-            if (!isValidPiece) return false;
+            if (!isValidPiece(c)) return false;
             Piece piece = getPieceFromChar(c);
             uint8_t pieceIndex = getBitboardIndex(piece);
             unsigned int squareIndex = getSquareIndex(i, j);
@@ -238,7 +239,7 @@ bool loadFromFen(Board* b, const char* fen) {
     }
     setHalfmoveClock(&(b->gameState), halfmove);
 
-    char* fullmoves = fen[k];  // from here until \0
+    char* fullmoves = fen + k;  // from here until \0
     unsigned int fenPly = convertFullmoveStringToPly(fullmoves);
 
     if (!fenPly) return false;
