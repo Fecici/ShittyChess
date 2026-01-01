@@ -6,7 +6,7 @@ void printGameState(Board* b) {
     printf("Current game state - move %d\n", getMoveCount(b->gameState));
     printf("gameState hex: %x", b->gameState);
     printBoard(b);
-    printBitBoards(b);
+    printBitboards(b);
     printZobrist(b);
 
 }
