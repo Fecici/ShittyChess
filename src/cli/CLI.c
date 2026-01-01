@@ -102,7 +102,11 @@ void checkTermination(Board* b);
 void handleStalemate(Board* b);
 void handleCheckmate(Board* b);
 
-bool isCharInt(const char c);
+static inline bool isCharInt(const char c) {
+    return '0' <= c && c <= '9';
+}
+
+
 Piece getPieceFromChar(const char c);
 static inline bool isValidPiece(const char c) {
     // basically one of these will kill c if its valid
@@ -113,6 +117,11 @@ static inline bool isValidPiece(const char c) {
 }
 
 static inline unsigned int getSquareIndex(const int i, const int j) {
+
+    // i gives the chunk, j gives the index.
+    // eg, 00001000 00000000 ...
+    // is the 0th i and 3rd j, and the square is 59. so we need the conversion 64 - i*8 + j - 8 = 56 - i * 8 + j
+    return 56 - i * 8 + j;
 
 }
 
@@ -144,20 +153,14 @@ static inline unsigned int convertFullmoveStringToPly(const char* fullmoves) {
 
 bool loadFromFen(Board* b, const char* fen) {
 
-    int k;  // index to string
-
     for (int i = 0; i < 8; i++) { 
-        for (int j = 0; j < 9; j++) {  // do +9 because of the '/'
-            /// TODO: this is incorrect because of empty spaces
-            k = i * 9 + j;
-            if (j == 8) {
-                if (fen[k] != '/') return false;
-                continue;
-            }
-            char c = fen[k];
+        for (int j = 0; j < 8; j++) {
+
+            fen++;
+            char c = *fen;
+            
             if (isCharInt(c)) {
-                j += (c - 0x30) - 1;  // add int to j counter
-                if (j >= 8) return false;  // invalid
+                fen += (c - 0x30) - 1;  // add int to fen ptr
                 continue;
             }
 
@@ -172,50 +175,47 @@ bool loadFromFen(Board* b, const char* fen) {
 
     }
 
-    k++;
-    if (fen[k] != ' ') return false;
-    k++;
+    if (*fen != ' ') return false;
+    fen++;
 
     uint8_t colourToMove = 0;
-    if (fen[k] == 'b') colourToMove = 1;
-    else if (fen[k] != 'w') return false;
+    if (*fen == 'b') colourToMove = 1;
+    else if (*fen != 'w') return false;
     setColourToMove(&(b->gameState), colourToMove);
-
-    k++;
-    if (fen[k] != '-') {
+    fen += 2;
+    if (*fen != '-') {
         
-        for (int i = k; i < k + 4; i++) {
-            if (i >= k + 1 && fen[i] == ' ') break;
-            uint8_t castleState = getValidCastlingFen(fen[i]);
+        while (*fen != ' ') {
+            uint8_t castleState = getValidCastlingFen(*fen);
             if (!castleState) return false;
 
             orCastlingRights(&(b->gameState), castleState);
-            k = i;  // at i = k + 4, k has the value k = k_old + 4
+            fen++;
         }
     }
     else {
-        k++;
+        fen++;
     }
 
-    if (fen[k] != ' ') return false;
-    k++;
-    if (fen[k] != '-') {
+    if (*fen != ' ') return false;
+    fen++;
+    if (*fen != '-') {
 
-        char file = fen[k];
-        char rank = fen[k+1];
+        char file = *fen;
+        char rank = *(fen + 1);
 
         uint8_t epSquare = convertSquareNotationToEP(file, rank);
         if (!epSquare) return false;
         setEnPassantSquare(&(b->gameState), epSquare);
-        k += 2;
+        fen += 2;
     }
-    else k++;
-    if (fen[k] != ' ') return false;
-    k++; 
+    else fen++;
+    if (*fen != ' ') return false;
+    fen++; 
     
-    char digit1 = fen[k];
-    char digit2 = fen[k+1];
-    k += 2;
+    char digit1 = *fen;
+    char digit2 = *(fen + 1);
+    fen += 2;
 
     uint8_t halfmove = 0;
 
@@ -233,13 +233,13 @@ bool loadFromFen(Board* b, const char* fen) {
         else {
             if (!digitIsValid(digit2)) return false;
             halfmove = (digit1 - 0x30) * 10 + (digit2 - 0x30);
-            if (fen[k] != ' ') return false;
-            k++;
+            if (*fen != ' ') return false;
+            fen++;
         }
     }
     setHalfmoveClock(&(b->gameState), halfmove);
 
-    char* fullmoves = fen + k;  // from here until \0
+    char* fullmoves = fen;  // from here until \0
     unsigned int fenPly = convertFullmoveStringToPly(fullmoves);
 
     if (!fenPly) return false;

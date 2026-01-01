@@ -12,20 +12,20 @@ void printZobrist(Board* b);
 void printColour(Board* b);
 
 
-static char pieceCodes[12][2] = {
+static char pieceCodes[12] = {
 
-        "WP",
-        "WN",
-        "WB",
-        "WR",
-        "WQ",
-        "WK",
-        "BP",
-        "BN",
-        "BB",
-        "BR",
-        "BQ",
-        "BK"
+        '♙',
+        '♘',
+        '♗',
+        '♖',
+        '♕',
+        '♔',
+        '♟',  // its black even though it looks white
+        '♞',
+        '♝',
+        '♜',
+        '♛',
+        '♚'
     };
 
 

@@ -15,26 +15,28 @@ void printBoard(Board* b) {
 // UNTESTED: need to do this
     Piece* arr = b->pieces;
     
-    printf("+----+----+----+----+----+----+----+----+");
+    printf("---+---+---+---+---+---+---+---+---+\n");
     for (int i = 0; i < 8; i++) {
+        printf(" %d ", 8 - i);
         for (int j = 8; j > 0; j--) {
             int k = 64 - i * 8 - j;  // index into arr
 
             Piece p = arr[k];
 
-            char* pieceCode = "  ";
+            char pieceCode = ' ';
             if (p != EMPTY) {
                 pieceCode = pieceCodes[getBitboardIndex(p)];
             }
 
-            printf("| %s ", pieceCode);
+            printf("| %c ", pieceCode);
 
         }
 
         printf("|\n");
+        printf("---+---+---+---+---+---+---+---+---+\n");
     }
-    printf("+----+----+----+----+----+----+----+----+\n");
-
+    printf("---+---+---+---+---+---+---+---+---+\n");
+    printf("   | a | b | c | d | e | f | g | h |\n");
 }
 
 void printBitboards(Board* b) {
