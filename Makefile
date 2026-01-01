@@ -6,7 +6,7 @@ SANITIZE = -fsanitize=address,undefined
 
 SRC = \
 	src/main.c \
-	src/cli/CLI.c \
+	src/cli/cli.c \
 	src/cli/ui.c \
 	src/util/bitUtil.c \
 	src/util/printUtils.c \
