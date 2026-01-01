@@ -1,4 +1,4 @@
-#include "../../include/printUtils.h"
+#include "printUtils.h"
 
 
 void printGameState(Board* b) {

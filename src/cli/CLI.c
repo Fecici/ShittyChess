@@ -1,4 +1,4 @@
-#include "CLI.h"
+#include "cli.h"
 
 /*
 CMDS: 
