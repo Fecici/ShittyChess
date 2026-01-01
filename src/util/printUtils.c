@@ -4,7 +4,7 @@
 void printGameState(Board* b) {
 
     printf("Current game state - move %d\n", getMoveCount(b->gameState));
-    printf("gameState hex: %x", b->gameState);
+    printf("gameState hex: %llx\n", b->gameState);
     printBoard(b);
     printBitboards(b);
     printZobrist(b);
@@ -35,7 +35,6 @@ void printBoard(Board* b) {
         printf("|\n");
         printf("---+---+---+---+---+---+---+---+---+\n");
     }
-    printf("---+---+---+---+---+---+---+---+---+\n");
     printf("   | a | b | c | d | e | f | g | h |\n");
 }
 
