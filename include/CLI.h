@@ -7,8 +7,8 @@
 #include "engine.h"
 #include "zobrist.h"
 
-typedef enum {human, engine} PlayerType;
-enum Command {
+typedef enum {HUMAN, ENGINE} PlayerType;
+typedef enum {
 
     MOVE,
     UNDO,
@@ -19,12 +19,13 @@ enum Command {
     PRINT_BOARD,
     PRINT_ZOBRIST,
     PRINT_BITBOARD
-};
+
+} Command;
 
 typedef struct {
 
     PlayerType playerType;
-    uint8_t colour;  // 0 or 1
+    Colour colour;  // 0 or 1
     Engine* engine;  // null if playertype is human
 
 } Player;
@@ -51,11 +52,9 @@ typedef struct {
     History history;
 } Game;
 
-void initPlayer(Player* p, PlayerType type, uint8_t colour, Engine* engine);
-Game initGame();  // init all, setup history, ui, etc.
+void initGame(Game* game, const char* fen, Player white, Player black, GameType gt);  // init all, setup history, ui, etc.
 void getCommand();
 void handleCommand();
-void setUI(Game* game, UI ui);
 void checkTermination(Board* b);
 void handleStalemate(Board* b);
 void handleCheckmate(Board* b);
@@ -66,8 +65,8 @@ unsigned int getPieceFromChar(const char c);
 char* convertToFen(Board* b);
 
 void cliMainLoop(Game* game, void (*performCommand)(Board* b));
-Move getmove(Board* b);
-bool isValid(Board* b, Move move); 
+Move getmove(Board* b, Player player);
+bool isValidMove(Board* b, Move move); 
 void handleIllegal();
 
 void performUndo(Board* b, Undo undo);

@@ -7,7 +7,8 @@
 #include <stdbool.h>
 
 // MACROS AND DEFS
-#define MAX_PLY 256
+#define MAX_PLY 0x7FFF
+#define MAX_DEPTH 256
 
 // promo needs 3 bits instead of 2, since the third will represent whether or not a promo actually happened
 //                                        v----- double pawn push (need more bits? no we have what we need)
@@ -68,8 +69,8 @@ typedef struct {
 // these update in parallel. undo holds metadata for easy undo of boards
 typedef struct {
 
-    Move moveStack[MAX_PLY];
-    Undo undoStack[MAX_PLY];
+    Move moveStack[MAX_DEPTH];
+    Undo undoStack[MAX_DEPTH];
     uint8_t ply;  // init to 0
 
 } Gamestack;
@@ -106,11 +107,11 @@ enum PieceIndex {
     iBK
 };
 
-enum Colour {WHITE, BLACK};
+typedef enum {WHITE, BLACK} Colour;
 
 typedef enum {
 
-    a1 = 0, b1, c1, d1, e1, f1, g1, h1,
+    a1, b1, c1, d1, e1, f1, g1, h1,
     a2, b2, c2, d2, e2, f2, g2, h2,
     a3, b3, c3, d3, e3, f3, g3, h3,
     a4, b4, c4, d4, e4, f4, g4, h4,
@@ -120,7 +121,7 @@ typedef enum {
     a8, b8, c8, d8, e8, f8, g8, h8
 
 
-}  Square;  // a1 = 0, h8 = 63
+}  Square;  // a1 = 0, h8 = 63. for rank, file: square(rank, file) = 64 - (8 - (rank - 1)) * 8 - (8 - (file - 1)). see "getSqaureIndex" function in cli.c
 
 
 const int victim_value[7] = {0, 100, 320, 330, 500, 900, 2000000000}; // 0, P, N, B, R, Q, K

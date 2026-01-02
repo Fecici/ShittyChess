@@ -18,7 +18,7 @@ void initUI(UI* ui, char* name, GameType gt, void (*messager)(), void (*renderer
 // i am also in complete violation of the software engineering principles
 // that i learned in class :)
 void ascii_render();
-void stdout_message();
+void stdout_messager();
 
 
 #endif
