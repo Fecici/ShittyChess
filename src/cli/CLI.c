@@ -17,80 +17,79 @@ pins (print pinned pieces mask)
 checkers (print checkers mask)
 quit
 
-
-
-SPEC:
-
-History should store:
-Move
-Undo
-zobrist after move (or before, either is fine if consistent)
-
-make_move should:
-update board state, bitboards, piece[64], castling/ep/halfmove, zobrist
-return false if move leaves own king in check
-undo_last_move pops history and calls unmake_move
-
-*/
-
-
-
-/*
-PSEUDO:
-
-function run_game(game):
-  ui.render(game.board)
-
-  while true:
-    // check terminal conditions BEFORE move
-    if is_draw(game):  // repetition, 50-move, insufficient material, stalemate
-        game.result = DRAW
-        break
-    if is_checkmate(game.board):
-        game.result = WIN(opposite(side_to_move(game.board)))
-        break
-
-    // determine whose turn it is
-    stm = side_to_move(game.board)
-    player = (stm == WHITE) ? game.white : game.black
-
-    // get a move from that player
-    if player.type == HUMAN:
-        move = get_human_move(game)
-        // includes: parse input, validate legal, allow commands (undo, resign, etc.)
-    else:
-        move = get_engine_move(game, player.engine)
-
-    // if command was issued, handle it
-    if move == CMD_UNDO:
-        if game.history.size >= 1:
-           undo_last_move(game)
-           ui.render(game.board)
-        continue
-
-    if move == CMD_RESIGN:
-        game.result = WIN(opposite(stm))
-        break
-
-    if move == CMD_QUIT:
-        game.result = ABORTED
-        break
-
-    // Apply the move (must be legal)
-    ok = make_move(game.board, move, &undo)
-    if not ok:
-        // if human: tell them invalid and retry
-        // if engine: it's a bug (fuck)
-        ui.message("Illegal move.")
-        continue
-
-    // Record history (for undo, repetition, etc.)
-    history_push(game.history, move, undo, game.board.zobrist)
-
-    // render / notify
-    ui.render(game.board)
+command abstract wrapper mappings
+cmd_undo      ---> void handleUndo(Board* b, Undo undo);
+cmd_move      ---> void handleMakeMove(Board* b, Move move);
+cmd_perft     ---> void handlePerft(Board* b);
+cmd_children  ---> void handleChildren(Board* b);
+cmd_quit      ---> void handleQuit();
+cmd_resign    ---> void handleResign(Board* b);
+cmd_help      ---> void prinHelp();
+cmd_fen       ---> bool loadFromFen(Board* b, const char* fen);
+cmd_moves     ---> void printLegalMoves(Board* b);
+cmd_hist      ---> void printHistory(History* h);
+cmd_eval      ---> void printEval(Board* b);
+cmd_hash      ---> void printZobrist(Board* b);  // written in printUtils
+cmd_att       ---> void printAttacksFromSquare(Board* b, Square sq);
+cmd_pins      ---> void printPinsBitboards(Board* b);
+cmd_checkers  ---> void printCheckersBitboards(Board* b);
+cmd_board     ---> void printBoard(Board* b);  // written in printUtils
 
 */
+///TODO: these need to be added to the header file as signatures
+void printHelp();
+void printLegalMoves(Board* b);
+void printHistory(History* h);
+void printEval(Board* b);  // eval will be written somewhere else, this is a printing wrapper
+void printAttacksFromSquare(Board* b, Square sq);
+void printPinsBitboards(Board* b);
+void printCheckersBitboards(Board* b);
+
+// these handle the formatting and arg processing before calling the functions they map to
+int cmd_undo(int argc, char** argv);
+int cmd_move(int argc, char** argv);
+int cmd_perft(int argc, char** argv);
+int cmd_children(int argc, char** argv);
+int cmd_quit(int argc, char** argv) { handleQuit(); }
+int cmd_resign(int argc, char** argv);
+int cmd_help(int argc, char** argv);
+int cmd_fen(int argc, char** argv);
+int cmd_moves(int argc, char** argv);
+int cmd_hist(int argc, char** argv);
+int cmd_eval(int argc, char** argv);
+int cmd_hash(int argc, char** argv);
+int cmd_att(int argc, char** argv);
+int cmd_pins(int argc, char** argv);
+int cmd_checkers(int argc, char** argv);
+
+
+int cmd_board(int argc, char** argv) {
+    // for now
+    printBoard(game->board);
+}
+
+// hold data for commands to be checked against by the tokenizer and the getCommand (we check against name and return the cmd)
+CommandAbstract cmds[] = {
+    {.name = "help", .cmd = cmd_help},
+    {.name = "undo", .cmd = cmd_undo},
+    {.name = "move", .cmd = cmd_move},
+    {.name = "perft", .cmd = cmd_perft},
+    {.name = "children", .cmd = cmd_children},
+    {.name = "quit", .cmd = cmd_quit},
+    {.name = "resign", .cmd = cmd_resign},
+    {.name = "fen", .cmd = cmd_fen},
+    {.name = "legal-moves", .cmd = cmd_moves},
+    {.name = "history", .cmd = cmd_hist},
+    {.name = "eval", .cmd = cmd_eval},
+    {.name = "hash", .cmd = cmd_hash},
+    {.name = "atk", .cmd = cmd_att},
+    {.name = "pins", .cmd = cmd_pins},
+    {.name = "checkers", .cmd = cmd_checkers},
+    {.name = "board", .cmd = cmd_board}
+
+};
+
+Game* game;  // this will hold the globals we need
 
  // init all, setup history, ui, etc.
 void initGame(Game* game, const char* fen, Player white, Player black, GameType gt) {
@@ -111,7 +110,7 @@ void initGame(Game* game, const char* fen, Player white, Player black, GameType 
 
     Board* b = (Board*) malloc(sizeof(Board));
 
-    if (b == NULL) {fprintf(stderr, "Failed to allocate memory for board."); exit(1); }
+    if (b == NULL) {fprintf(stderr, "Failed to allocate memory for board.\n"); exit(1); }
 
     game->board = b;
 
@@ -119,7 +118,7 @@ void initGame(Game* game, const char* fen, Player white, Player black, GameType 
     game->black = black;
 
     if (!loadFromFen(b, fen)) {
-        fprintf(stderr, "Failed to parse fen string: %s", fen);
+        fprintf(stderr, "Failed to parse fen string: %s\n", fen);
         exit(1);
     }
 
@@ -141,11 +140,56 @@ void initGame(Game* game, const char* fen, Player white, Player black, GameType 
 
 }
 
+// this needs to turn all whitespace into a '\0' and count the args. this also mutates argv
+static int tokenize(char* line, char** argv) {
 
-void getCommand();
-void handleCommand();
+    int argc = 0;
+    char* split = line;
+    while (*split) {
+        // skip until whitespace
+        while (!isspace((unsigned char) *split)) split++;
+        
+        if (!*split) break;
+        if (argc >= MAX_ARG) return argc;
+
+        argv[argc] = split;
+        argc++;
+
+        // fill whitespace with \0
+        while (*split && !isspace((unsigned char) *split)) split++;
+        if (*split) *split = '\0';
+        split++;
+    }
+
+    return argc;
+
+}
+
+static void getInput(char input[]) {
+
+    printf(">>> ");
+    if (!fgets(input, sizeof(input), stdin)) {fprintf("Error reading command, try again...\n", stderr); return getInput(input);}
+
+    // strip
+    input[strcspn(input, "\r\n")] = '\0';
+}
+
+static inline CommandAbstract* getCommand(char input[], int nCmds) {
+
+    for (int i = 0; i < nCmds; i++) {
+        if (strncmp(input, cmds[i].name, MAX_CMD_NAME)) return &cmds[i];
+    }
+
+    return NULL;
+
+}
+
+// terminal functions
 void checkTermination(Board* b);
-void handleStalemate(Board* b);
+void handleStalemate(Board* b) {
+    printf("Stalemate: 0.5 -- 0.5.\n");
+    exit(0);  // new game maybe another time (make this function return a bool i guess)
+}
 void handleCheckmate(Board* b);
 
 static inline bool isCharInt(const char c) {
@@ -153,7 +197,26 @@ static inline bool isCharInt(const char c) {
 }
 
 
-Piece getPieceFromChar(const char c);
+Piece getPieceFromChar(const char c) {
+
+    switch (c) {
+        case 'P': return WP;
+        case 'N': return WN;
+        case 'B': return WB;
+        case 'R': return WR;
+        case 'K': return WK;
+        case 'Q': return WQ;
+
+        case 'p': return BP;
+        case 'n': return BN;
+        case 'b': return BB;
+        case 'r': return BR;
+        case 'k': return BK;
+        case 'q': return BQ;
+        default: return EMPTY;  // not valid piece
+    }
+}
+
 static inline bool isValidPiece(const char c) {
     // basically one of these will kill c if its valid
     return !(
@@ -191,6 +254,13 @@ static inline uint8_t getValidCastlingFen(const char c) {
 
 static inline uint8_t convertSquareNotationToEP(const char file, const char rank) {
 
+    if (rank != '3' || rank != '6' || rank < '1' || rank > '8') return 0;
+
+    uint8_t k = 16;
+    k += (file - '0' - 1);
+    if (rank == '6') k += 24;
+    return k;
+
 }
 
 static inline unsigned int convertFullmoveStringToPly(const char* fullmoves, uint64_t blackToMove) {
@@ -215,6 +285,7 @@ bool loadFromFen(Board* b, const char* fen) {
 
             if (!isValidPiece(c)) return false;
             Piece piece = getPieceFromChar(c);
+            if (piece == EMPTY) return false;
             uint8_t pieceIndex = getBitboardIndex(piece);
             unsigned int squareIndex = getSquareIndex(i, j);
 
@@ -300,24 +371,45 @@ bool loadFromFen(Board* b, const char* fen) {
     return true;
 }
 
-
+// convert position to fen (lets call this with a flag in the fen cmd)
 char* convertToFen(Board* b);
 
-void cliMainLoop(Game* game, void (*performCommand)(Board* b)) {
+void cliMainLoop(Game* g) {
 
-    Board* board = game->board;
-    Player white = game->white;
-    Player black = game->black;
+    game = g;  // set our global game ptr to the one passed in
+
+    int nCmds = (int)(sizeof(cmds) / sizeof(CommandAbstract));
+
+    
+    char input[MAX_STDIN];
+    int argc = 0;
+    char* argv[MAX_ARG];
+
+    bool checkTermination = false;
 
     while (true) {
 
-        Player player = (isBlackToMove(board->gameState)) ? black : white;
+        if (checkTermination) (game->board);
 
-        Move move = getMove(board, player);
+        getInput(input);
 
-        performCommand(board);  // i am not sure how to implement this still
+        argc = tokenize(input, argv);
+        if (!argc) continue;
 
-        performMove(board, move);
+        CommandAbstract* cmd = getCommand(input, nCmds);
+
+        if (!cmd) {fprintf("Command not found: \"%s\"\n", input, stderr); continue;}  // since we tokenized input, this only prints the name
+
+        // perform cmd
+        if (cmd->cmd(argc, argv) < 0) fprintf("Something went wrong...\n", stderr);
+
+        // Player player = (isBlackToMove(board->gameState)) ? black : white;
+
+        // Move move = getMove(board, player);
+
+        // performCommand(board);  // i am not sure how to implement this still
+
+        // performMove(board, move);
 
     }
 
@@ -333,7 +425,8 @@ void handleIllegal();
 void performUndo(Board* b, Undo undo);
 void performMove(Board* b, Move move);
 
-// one of these is chosen for the performCommand pointer
+// one of these is chosen for the performCommand pointer 
+///TODO: not anymore, we're doign something different. could be a bool
 void __DEBUG_performCommand(Board* b);
 void noDebugGetMove(Board* b);
 
@@ -342,5 +435,5 @@ void handleUndo(Board* b, Undo undo);
 void handleMakeMove(Board* b, Move move);
 void handlePerft(Board* b);
 void handleChildren(Board* b);
-void handleQuit();
+void handleQuit() {exit(0);}
 void handleResign(Board* b);

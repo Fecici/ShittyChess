@@ -1,6 +1,10 @@
 #ifndef CLI_HEADER
 #define CLI_HEADER
 
+#define MAX_ARG 5  // how am i going to get more than 5 arguments for a single thing??? im wayy too lazy
+#define MAX_STDIN 256
+#define MAX_CMD_NAME 32
+
 #include "definitions.h"
 #include "printUtils.h"
 #include "ui.h"
@@ -8,19 +12,39 @@
 #include "zobrist.h"
 
 typedef enum {HUMAN, ENGINE} PlayerType;
-typedef enum {
+typedef int (*Cmd)(int argc, char** argv);
 
-    MOVE,
-    UNDO,
-    PERFT,
-    CHILDREN,
-    QUIT,
-    RESIGN,
-    PRINT_BOARD,
-    PRINT_ZOBRIST,
-    PRINT_BITBOARD
+typedef struct {
+    char* name;
+    Cmd cmd;
+} CommandAbstract;
 
-} Command;
+// Command stuff
+void printHelp();
+void printLegalMoves(Board* b);
+void printHistory(History* h);
+void printEval(Board* b);  // eval will be written somewhere else, this is a printing wrapper
+void printAttacksFromSquare(Board* b, Square sq);
+void printPinsBitboards(Board* b);
+void printCheckersBitboards(Board* b);
+
+// these handle the formatting and arg processing before calling the functions they map to
+int cmd_undo(int argc, char** argv);
+int cmd_move(int argc, char** argv);
+int cmd_perft(int argc, char** argv);
+int cmd_children(int argc, char** argv);
+int cmd_quit(int argc, char** argv);
+int cmd_resign(int argc, char** argv);
+int cmd_help(int argc, char** argv);
+int cmd_fen(int argc, char** argv);
+int cmd_moves(int argc, char** argv);
+int cmd_hist(int argc, char** argv);
+int cmd_eval(int argc, char** argv);
+int cmd_hash(int argc, char** argv);
+int cmd_att(int argc, char** argv);
+int cmd_pins(int argc, char** argv);
+int cmd_checkers(int argc, char** argv);
+int cmd_board(int argc, char** argv);
 
 typedef struct {
 
@@ -53,8 +77,12 @@ typedef struct {
 } Game;
 
 void initGame(Game* game, const char* fen, Player white, Player black, GameType gt);  // init all, setup history, ui, etc.
-void getCommand();
-void handleCommand();
+static CommandAbstract* getCommand(char input[], int nCmds);
+static int tokenize(char* line, char** argv);
+static void getInput(char input[]);
+
+
+
 void checkTermination(Board* b);
 void handleStalemate(Board* b);
 void handleCheckmate(Board* b);
