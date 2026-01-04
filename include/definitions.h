@@ -46,6 +46,32 @@ typedef struct {
 
 } Undo;
 
+// these update in parallel. undo holds metadata for easy undo of boards
+typedef struct {
+
+    Move moveStack[MAX_DEPTH];
+    Undo undoStack[MAX_DEPTH];
+    uint8_t ply;  // init to 0
+
+} Gamestack;
+
+
+typedef enum {
+    EMPTY,      // no piece
+    WP = 1,     // 0001
+    WN,
+    WB,
+    WR,
+    WQ,
+    WK,
+    BP = 9,     // 1001
+    BN,
+    BB,
+    BR,
+    BQ,
+    BK,
+} Piece;
+
 
 // hold bit boards for the game. will also store game meta data like castling rights, enpassant, etc.
 typedef struct {
@@ -68,30 +94,7 @@ typedef struct {
     unsigned int ply;  // 0 initially. >> 1 to get full move clock. 
 } Board;
 
-// these update in parallel. undo holds metadata for easy undo of boards
-typedef struct {
 
-    Move moveStack[MAX_DEPTH];
-    Undo undoStack[MAX_DEPTH];
-    uint8_t ply;  // init to 0
-
-} Gamestack;
-
-typedef enum {
-    EMPTY,      // no piece
-    WP = 1,     // 0001
-    WN,
-    WB,
-    WR,
-    WQ,
-    WK,
-    BP = 9,     // 1001
-    BN,
-    BB,
-    BR,
-    BQ,
-    BK,
-} Piece;
 
 // index into bitboards
 enum PieceIndex {
