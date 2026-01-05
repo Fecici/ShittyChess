@@ -83,7 +83,7 @@ static void getInput(char input[]);
 
 
 
-void checkTermination(Board* b);
+bool checkTermination(Board* b);
 void handleStalemate(Board* b);
 void handleCheckmate(Board* b);
 

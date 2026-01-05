@@ -185,7 +185,7 @@ static inline CommandAbstract* getCommand(char input[], int nCmds) {
 }
 
 // terminal functions
-void checkTermination(Board* b);
+bool checkTermination(Board* b);
 void handleStalemate(Board* b) {
     printf("Stalemate: 0.5 -- 0.5.\n");
     exit(0);  // new game maybe another time (make this function return a bool i guess)
