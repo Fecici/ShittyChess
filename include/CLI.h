@@ -11,6 +11,37 @@
 #include "engine.h"
 #include "zobrist.h"
 
+
+typedef struct {
+
+    PlayerType playerType;
+    Colour colour;  // 0 or 1
+    Engine* engine;  // null if playertype is human
+
+} Player;
+
+typedef struct {
+
+    uint64_t hashHistory[MAX_PLY];
+    Move moveHistory[MAX_PLY];
+    Undo undoHistory[MAX_PLY];
+
+    
+} History;
+
+typedef struct {
+
+    UI ui;
+    Board* board;
+    Player white, black;
+    unsigned int moves;  // 2ply = 1 move
+    unsigned int ply;
+    /// TODO: time control eventually
+    int whiteTime, blackTime;
+    uint8_t gameResult;  // format to be defined, but basically its a flag that describes how the game ended
+    History history;
+} Game;
+
 typedef enum {HUMAN, ENGINE} PlayerType;
 typedef int (*Cmd)(int argc, char** argv);
 
@@ -46,40 +77,11 @@ int cmd_pins(int argc, char** argv);
 int cmd_checkers(int argc, char** argv);
 int cmd_board(int argc, char** argv);
 
-typedef struct {
 
-    PlayerType playerType;
-    Colour colour;  // 0 or 1
-    Engine* engine;  // null if playertype is human
-
-} Player;
-
-typedef struct {
-
-    uint64_t hashHistory[MAX_PLY];
-    Move moveHistory[MAX_PLY];
-    Undo undoHistory[MAX_PLY];
-
-    
-} History;
-
-typedef struct {
-
-    UI ui;
-    Board* board;
-    Player white, black;
-    unsigned int moves;  // 2ply = 1 move
-    unsigned int ply;
-    /// TODO: time control eventually
-    unsigned int whiteTime, blackTime;
-    uint8_t gameResult;  // format to be defined, but basically its a flag that describes how the game ended
-    History history;
-} Game;
-
-void initGame(Game* game, const char* fen, Player white, Player black, GameType gt);  // init all, setup history, ui, etc.
+void initGame(char* fen, Player white, Player black, GameType gt);  // init all, setup history, ui, etc.
 static CommandAbstract* getCommand(char input[], int nCmds);
 static int tokenize(char* line, char** argv);
-static void getInput(char input[]);
+static void getInput(char* input, size_t size);
 
 
 
@@ -87,9 +89,9 @@ bool checkTermination(Board* b);
 void handleStalemate(Board* b);
 void handleCheckmate(Board* b);
 
-bool loadFromFen(Board* b, const char* fen);
+bool loadFromFen(Board* b, char* fen);
 bool isCharInt(const char c);
-unsigned int getPieceFromChar(const char c);
+Piece getPieceFromChar(const char c);
 char* convertToFen(Board* b);
 
 void cliMainLoop(Game* game, void (*performCommand)(Board* b));

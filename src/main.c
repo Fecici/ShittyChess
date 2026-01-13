@@ -3,7 +3,7 @@
 const char* startFen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
 /*https://gist.github.com/peterellisjones/8c46c28141c162d1d8a0f0badbc9cff9*/
-const char** testFens = {
+const char* testFens[] = {
     "rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 8",
     "r4rk1/1pp1qppp/p1np1n2/2b1p1B1/2B1P1b1/P1NP1N2/1PP1QPPP/R4RK1 w - - 0 10",
     "3k4/3p4/8/K1P4r/8/8/8/8 b - - 0 1",
@@ -41,15 +41,14 @@ int main() {
 
     // on exit, print exit information
 
-    const char* fen;
+    char* fen;
 
 
     fen = startFen;
     Player white = {HUMAN, WHITE, NULL};
     Player black = {HUMAN, BLACK, NULL};
 
-    Game game;
-    initGame(&game, fen, white, black, HvH);
+    initGame(fen, white, black, HvH);
     
 
     return 0;

@@ -11,23 +11,4 @@ void printBitBoard(uint64_t bitboard, char* name, bool makeSquare);
 void printZobrist(Board* b);
 void printColour(Board* b);
 
-
-static wchar_t pieceCodes[12] = {
-
-        '♙',
-        '♘',
-        '♗',
-        '♖',
-        '♕',
-        '♔',
-        '♟',  // its black even though it looks white
-        '♞',
-        '♝',
-        '♜',
-        '♛',
-        '♚'
-    };
-
-
-
 #endif

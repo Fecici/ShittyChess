@@ -1,10 +1,30 @@
 #include "printUtils.h"
 
 
+
+static char* const pieceCodes[12] = {
+
+        "♙",
+        "♘",
+        "♗",
+        "♖",
+        "♕",
+        "♔",
+        "♟",  // its black even though it looks white
+        "♞",
+        "♝",
+        "♜",
+        "♛",
+        "♚"
+    };
+
+
+
+
 void printGameState(Board* b) {
 
-    printf("Current game state - move %d\n", getMoveCount(b->ply));
-    printf("gameState hex: %lx\n", b->gameState);
+    printf("Current game state - move %u\n", getMoveCount(b->ply));
+    printf("gameState hex: %x\n", b->gameState);
     printBoard(b);
     printBitboards(b);
     printZobrist(b);
@@ -23,12 +43,12 @@ void printBoard(Board* b) {
 
             Piece p = arr[k];
 
-            wchar_t pieceCode = ' ';
+            char* pieceCode = " ";
             if (p != EMPTY) {
                 pieceCode = pieceCodes[getBitboardIndex(p)];
             }
 
-            printf("| %lc ", pieceCode);
+            printf("| %s ", pieceCode);
 
         }
 

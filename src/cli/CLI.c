@@ -1,5 +1,28 @@
 #include "cli.h"
 
+// hold data for commands to be checked against by the tokenizer and the getCommand (we check against name and return the cmd)
+CommandAbstract cmds[] = {
+    {.name = "help", .cmd = cmd_help},
+    {.name = "undo", .cmd = cmd_undo},
+    {.name = "move", .cmd = cmd_move},
+    {.name = "perft", .cmd = cmd_perft},
+    {.name = "children", .cmd = cmd_children},
+    {.name = "quit", .cmd = cmd_quit},
+    {.name = "resign", .cmd = cmd_resign},
+    {.name = "fen", .cmd = cmd_fen},
+    {.name = "legal-moves", .cmd = cmd_moves},
+    {.name = "history", .cmd = cmd_hist},
+    {.name = "eval", .cmd = cmd_eval},
+    {.name = "hash", .cmd = cmd_hash},
+    {.name = "atk", .cmd = cmd_att},
+    {.name = "pins", .cmd = cmd_pins},
+    {.name = "checkers", .cmd = cmd_checkers},
+    {.name = "board", .cmd = cmd_board}
+
+};
+
+Game* game;  // this will hold the globals we need
+
 /*
 CMDS: 
 help
@@ -68,31 +91,8 @@ int cmd_board(int argc, char** argv) {
     printBoard(game->board);
 }
 
-// hold data for commands to be checked against by the tokenizer and the getCommand (we check against name and return the cmd)
-CommandAbstract cmds[] = {
-    {.name = "help", .cmd = cmd_help},
-    {.name = "undo", .cmd = cmd_undo},
-    {.name = "move", .cmd = cmd_move},
-    {.name = "perft", .cmd = cmd_perft},
-    {.name = "children", .cmd = cmd_children},
-    {.name = "quit", .cmd = cmd_quit},
-    {.name = "resign", .cmd = cmd_resign},
-    {.name = "fen", .cmd = cmd_fen},
-    {.name = "legal-moves", .cmd = cmd_moves},
-    {.name = "history", .cmd = cmd_hist},
-    {.name = "eval", .cmd = cmd_eval},
-    {.name = "hash", .cmd = cmd_hash},
-    {.name = "atk", .cmd = cmd_att},
-    {.name = "pins", .cmd = cmd_pins},
-    {.name = "checkers", .cmd = cmd_checkers},
-    {.name = "board", .cmd = cmd_board}
-
-};
-
-Game* game;  // this will hold the globals we need
-
  // init all, setup history, ui, etc.
-void initGame(Game* game, const char* fen, Player white, Player black, GameType gt) {
+void initGame(char* fen, Player white, Player black, GameType gt) {
 
     /*
     typedef struct {
@@ -165,10 +165,13 @@ static int tokenize(char* line, char** argv) {
 
 }
 
-static void getInput(char input[]) {
+static void getInput(char* input, size_t size) {
 
     printf(">>> ");
-    if (!fgets(input, sizeof(input), stdin)) {fprintf("Error reading command, try again...\n", stderr); return getInput(input);}
+    if (!fgets(input, size, stdin)) {
+        fprintf(stderr, "Error reading command, try again...\n"); 
+        return getInput(input, size);
+    }
 
     // strip
     input[strcspn(input, "\r\n")] = '\0';
@@ -185,14 +188,35 @@ static inline CommandAbstract* getCommand(char input[], int nCmds) {
 }
 
 // terminal functions
-bool checkTermination(Board* b);
+bool checkTermination(Board* b) {
+
+    (void*) b;
+    (Board*) b;
+
+    return false;
+}
+
 void handleStalemate(Board* b) {
+    printf("\n\n\n");
+    printBoard(b);
     printf("Stalemate: 0.5 -- 0.5.\n");
     exit(0);  // new game maybe another time (make this function return a bool i guess)
 }
-void handleCheckmate(Board* b);
+void handleCheckmate(Board* b) {
 
-static inline bool isCharInt(const char c) {
+    int w = 0;
+    int b = 0;
+
+    // get gamestate then print w or b
+
+    printf("\n\n\n");
+    printBoard(b);
+    printf("Checkmate! %d -- %d.\n", w, b);
+    exit(0);  // new game maybe another time (make this function return a bool i guess)
+
+}
+
+bool isCharInt(const char c) {
     return '0' <= c && c <= '9';
 }
 
@@ -230,7 +254,7 @@ static inline unsigned int getSquareIndex(const int i, const int j) {
     // i gives the chunk, j gives the index.
     // eg, 00001000 00000000 ...
     // is the 0th i and 3rd j, and the square is 59. so we need the conversion 64 - i*8 + j - 8 = 56 - i * 8 + j
-    return 56 - i * 8 + j;
+    return (unsigned int) (56 - i * 8 + j);
 
 }
 
@@ -257,7 +281,7 @@ static inline uint8_t convertSquareNotationToEP(const char file, const char rank
     if (rank != '3' || rank != '6' || rank < '1' || rank > '8') return 0;
 
     uint8_t k = 16;
-    k += (file - '0' - 1);
+    k += (uint8_t) (file - '0' - 1);
     if (rank == '6') k += 24;
     return k;
 
@@ -266,11 +290,11 @@ static inline uint8_t convertSquareNotationToEP(const char file, const char rank
 static inline unsigned int convertFullmoveStringToPly(const char* fullmoves, uint64_t blackToMove) {
 
 
-    return ((((unsigned int) (fullmoves - '0')) - 1) << 1) + blackToMove;
+    return ((((unsigned int) strtol(fullmoves, NULL, 0)) - 1) << 1) + ((unsigned int) blackToMove);
 
 }
 
-bool loadFromFen(Board* b, const char* fen) {
+bool loadFromFen(Board* b, char* fen) {
 
     for (int i = 0; i < 8; i++) { 
         for (int j = 0; j < 8; j++) {
@@ -347,12 +371,12 @@ bool loadFromFen(Board* b, const char* fen) {
     else {
 
         if (digit2 == ' ') {
-            halfmove = digit1 - 0x30;
+            halfmove = (uint8_t) (digit1 - 0x30);
         }
 
         else {
             if (!isCharInt(digit2)) return false;
-            halfmove = (digit1 - 0x30) * 10 + (digit2 - 0x30);
+            halfmove = (uint8_t) (((uint8_t) (digit1 - 0x30)) * 10 + ((uint8_t) (digit2 - 0x30)));
             if (*fen != ' ') return false;
             fen++;
         }
@@ -374,7 +398,7 @@ bool loadFromFen(Board* b, const char* fen) {
 // convert position to fen (lets call this with a flag in the fen cmd)
 char* convertToFen(Board* b);
 
-void cliMainLoop(Game* g) {
+void cliMainLoop(Game* g, void (*performCommand)(Board* b)) {
 
     game = g;  // set our global game ptr to the one passed in
 
@@ -391,17 +415,17 @@ void cliMainLoop(Game* g) {
 
         if (checkTermination) (game->board);
 
-        getInput(input);
+        getInput(input, (size_t) MAX_STDIN);
 
         argc = tokenize(input, argv);
         if (!argc) continue;
 
         CommandAbstract* cmd = getCommand(input, nCmds);
 
-        if (!cmd) {fprintf("Command not found: \"%s\"\n", input, stderr); continue;}  // since we tokenized input, this only prints the name
+        if (!cmd) {fprintf(stderr, "Command not found: \"%s\"\n", input); continue;}  // since we tokenized input, this only prints the name
 
         // perform cmd
-        if (cmd->cmd(argc, argv) < 0) fprintf("Something went wrong...\n", stderr);
+        if (cmd->cmd(argc, argv) < 0) fprintf(stderr, "Something went wrong...\n");
 
         // Player player = (isBlackToMove(board->gameState)) ? black : white;
 
