@@ -3,8 +3,8 @@
 
 void printGameState(Board* b) {
 
-    printf("Current game state - move %d\n", getMoveCount(b->gameState));
-    printf("gameState hex: %llx\n", b->gameState);
+    printf("Current game state - move %d\n", getMoveCount(b->ply));
+    printf("gameState hex: %lx\n", b->gameState);
     printBoard(b);
     printBitboards(b);
     printZobrist(b);
@@ -23,12 +23,12 @@ void printBoard(Board* b) {
 
             Piece p = arr[k];
 
-            char pieceCode = ' ';
+            wchar_t pieceCode = ' ';
             if (p != EMPTY) {
                 pieceCode = pieceCodes[getBitboardIndex(p)];
             }
 
-            printf("| %c ", pieceCode);
+            printf("| %lc ", pieceCode);
 
         }
 
@@ -64,7 +64,7 @@ void printBitBoard(uint64_t bitboard, char* name, bool makeSquare) {
         
         for (uint64_t i = 0; i < 8; i++) {
             for (uint64_t j = 8; j > 0; j--) {
-                uint64_t k = ((uint64_t) 1 << (64 - i * 8) - j);
+                uint64_t k = ((uint64_t) 1 << ((64 - i * 8) - j));
                 
                 if (k & bitboard) printf("1");
                 else              printf("0");
@@ -92,7 +92,7 @@ void printBitBoard(uint64_t bitboard, char* name, bool makeSquare) {
 
 void printZobrist(Board* b) {
 
-    printf("\nZobrist:\t%x", b->zobrist);
+    printf("\nZobrist:\t%llx", b->zobrist);
 
 }
 

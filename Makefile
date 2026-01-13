@@ -8,7 +8,7 @@ SRC = \
 	src/main.c \
 	src/cli/cli.c \
 	src/cli/ui.c \
-	src/util/bitUtil.c \
+	src/util/bitUtils.c \
 	src/util/printUtils.c \
 	src/util/zobrist.c
 

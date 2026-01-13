@@ -12,7 +12,7 @@ void printZobrist(Board* b);
 void printColour(Board* b);
 
 
-static char pieceCodes[12] = {
+static int pieceCodes[12] = {
 
         '♙',
         '♘',

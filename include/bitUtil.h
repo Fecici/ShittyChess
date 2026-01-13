@@ -32,9 +32,10 @@ static inline void incrHalfmoveClock(uint32_t* gamestate);
 
 // castling rights: _ _ _ _ | black short, black long, white short, white long
 static inline void orCastlingRights(uint32_t* gamestate, uint8_t field);
-static inline void canWhiteCastleLong(uint32_t gamestate);
-static inline void canWhiteCastleShort(uint32_t gamestate);
-static inline void canBlackCastleLong(uint32_t gamestate);
-static inline void canBlackCastleShort(uint32_t gamestate);
+static inline bool canWhiteCastleLong(uint32_t gamestate);
+static inline bool canWhiteCastleShort(uint32_t gamestate);
+static inline bool canBlackCastleLong(uint32_t gamestate);
+static inline bool canBlackCastleShort(uint32_t gamestate);
+static inline int getMoveCount(int ply);
 
 #endif
