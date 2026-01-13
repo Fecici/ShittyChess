@@ -1,4 +1,4 @@
-#include "bitUtil.h"
+#include "bitUtils.h"
 
 static inline uint8_t getBitboardIndex(uint8_t piece) {
 

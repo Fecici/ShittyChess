@@ -2,7 +2,7 @@
 #define PRINT_UTILS_HEADER
 
 #include "definitions.h"
-#include "bitUtil.h"
+#include "bitUtils.h"
 
 void printGameState(Board* b);
 void printBoard(Board* b);
@@ -12,7 +12,7 @@ void printZobrist(Board* b);
 void printColour(Board* b);
 
 
-static int pieceCodes[12] = {
+static wchar_t pieceCodes[12] = {
 
         '♙',
         '♘',
