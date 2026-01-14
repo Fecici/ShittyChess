@@ -73,14 +73,24 @@ int cmd_undo(int argc, char** argv);
 int cmd_move(int argc, char** argv);
 int cmd_perft(int argc, char** argv);
 int cmd_children(int argc, char** argv);
-int cmd_quit(int argc, char** argv) { (void) argc; (void) argv; handleQuit(); return 0;}
+
+int cmd_quit(int argc, char** argv) { 
+    ///TODO: free heap
+    (void) argc; 
+    (void) argv; 
+    handleQuit(); 
+    return 0;
+}
+
 int cmd_resign(int argc, char** argv);
 int cmd_help(int argc, char** argv);
 int cmd_fen(int argc, char** argv);
 int cmd_moves(int argc, char** argv);
 int cmd_hist(int argc, char** argv);
 int cmd_eval(int argc, char** argv);
+
 int cmd_hash(int argc, char** argv);
+
 int cmd_att(int argc, char** argv);
 int cmd_pins(int argc, char** argv);
 int cmd_checkers(int argc, char** argv);

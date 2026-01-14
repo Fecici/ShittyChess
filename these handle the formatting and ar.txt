@@ -1,0 +1,68 @@
+// these handle the formatting and arg processing before calling the functions they map to
+int cmd_undo(int argc, char** argv);
+
+-f force undo even if not possible
+
+int cmd_move(int argc, char** argv);
+
+-f for force, -m 0x num to represent move (32bit), -v for visual, where it makes the move, prints the board, and undoes the move.
+
+int cmd_perft(int argc, char** argv);
+
+-n for depth, depth 5 default, -fen for given fen -search [0, 1, 2, etc] for given enums representing different possible search algorithms for correctness.
+
+int cmd_children(int argc, char** argv);
+
+- nothing much here tbh
+
+int cmd_resign(int argc, char** argv);
+
+self explanatory
+
+int cmd_help(int argc, char** argv);
+
+idk just print help stuff
+
+int cmd_fen(int argc, char** argv);
+
+-default, prints board fen, -l to load fen to board.
+
+int cmd_moves(int argc, char** argv);
+
+print legal moves (isn't this jiust children?)
+
+int cmd_hist(int argc, char** argv);
+
+print history
+
+int cmd_eval(int argc, char** argv);
+
+print eval, -e to specifiy which Enum eval funct to use.
+
+int cmd_hash(int argc, char** argv);
+
+-x print game Zobrist hash
+
+int cmd_att(int argc, char** argv);
+
+print possible attacks on board -b bitboard
+
+int cmd_pins(int argc, char** argv);
+
+print pins on board -b bitboard
+
+int cmd_checkers(int argc, char** argv);
+
+print checkers -b bitboard
+
+int cmd_board(int argc, char** argv) {
+    // for now
+    (void) argc;
+    (void) argv;
+    printBoard(game->board);
+
+    return 0;
+}
+
+-b bitboard -x hex -g gamestate -gx gamestate hex
+
