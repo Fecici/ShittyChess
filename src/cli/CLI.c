@@ -73,7 +73,7 @@ int cmd_undo(int argc, char** argv);
 int cmd_move(int argc, char** argv);
 int cmd_perft(int argc, char** argv);
 int cmd_children(int argc, char** argv);
-int cmd_quit(int argc, char** argv) { handleQuit(); }
+int cmd_quit(int argc, char** argv) { (void) argc; (void) argv; handleQuit(); return 0;}
 int cmd_resign(int argc, char** argv);
 int cmd_help(int argc, char** argv);
 int cmd_fen(int argc, char** argv);
@@ -88,7 +88,11 @@ int cmd_checkers(int argc, char** argv);
 
 int cmd_board(int argc, char** argv) {
     // for now
+    (void) argc;
+    (void) argv;
     printBoard(game->board);
+
+    return 0;
 }
 
  // init all, setup history, ui, etc.
@@ -141,7 +145,7 @@ void initGame(char* fen, Player white, Player black, GameType gt) {
 }
 
 // this needs to turn all whitespace into a '\0' and count the args. this also mutates argv
-static int tokenize(char* line, char** argv) {
+int tokenize(char* line, char** argv) {
 
     int argc = 0;
     char* split = line;
@@ -165,10 +169,10 @@ static int tokenize(char* line, char** argv) {
 
 }
 
-static void getInput(char* input, size_t size) {
+void getInput(char* input, size_t size) {
 
     printf(">>> ");
-    if (!fgets(input, size, stdin)) {
+    if (!fgets(input, (int) size, stdin)) {
         fprintf(stderr, "Error reading command, try again...\n"); 
         return getInput(input, size);
     }
@@ -177,7 +181,7 @@ static void getInput(char* input, size_t size) {
     input[strcspn(input, "\r\n")] = '\0';
 }
 
-static inline CommandAbstract* getCommand(char input[], int nCmds) {
+CommandAbstract* getCommand(char input[], int nCmds) {
 
     for (int i = 0; i < nCmds; i++) {
         if (strncmp(input, cmds[i].name, MAX_CMD_NAME)) return &cmds[i];
@@ -190,8 +194,7 @@ static inline CommandAbstract* getCommand(char input[], int nCmds) {
 // terminal functions
 bool checkTermination(Board* b) {
 
-    (void*) b;
-    (Board*) b;
+    (void) b;
 
     return false;
 }
@@ -204,14 +207,14 @@ void handleStalemate(Board* b) {
 }
 void handleCheckmate(Board* b) {
 
-    int w = 0;
-    int b = 0;
+    int white = 0;
+    int black = 0;
 
     // get gamestate then print w or b
 
     printf("\n\n\n");
     printBoard(b);
-    printf("Checkmate! %d -- %d.\n", w, b);
+    printf("Checkmate! %d -- %d.\n", white, black);
     exit(0);  // new game maybe another time (make this function return a bool i guess)
 
 }
@@ -401,6 +404,7 @@ char* convertToFen(Board* b);
 void cliMainLoop(Game* g, void (*performCommand)(Board* b)) {
 
     game = g;  // set our global game ptr to the one passed in
+    (void) performCommand;  // for now
 
     int nCmds = (int)(sizeof(cmds) / sizeof(CommandAbstract));
 
@@ -409,11 +413,11 @@ void cliMainLoop(Game* g, void (*performCommand)(Board* b)) {
     int argc = 0;
     char* argv[MAX_ARG];
 
-    bool checkTermination = false;
+    bool terminationDebug = false;
 
     while (true) {
 
-        if (checkTermination) (game->board);
+        if (terminationDebug) (checkTermination(game->board));
 
         getInput(input, (size_t) MAX_STDIN);
 

@@ -1,6 +1,6 @@
 #include "main.h"
 
-const char* startFen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+char* const startFen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
 /*https://gist.github.com/peterellisjones/8c46c28141c162d1d8a0f0badbc9cff9*/
 const char* testFens[] = {

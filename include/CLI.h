@@ -11,6 +11,7 @@
 #include "engine.h"
 #include "zobrist.h"
 
+typedef enum {HUMAN, ENGINE} PlayerType;
 
 typedef struct {
 
@@ -42,7 +43,7 @@ typedef struct {
     History history;
 } Game;
 
-typedef enum {HUMAN, ENGINE} PlayerType;
+
 typedef int (*Cmd)(int argc, char** argv);
 
 typedef struct {
@@ -79,9 +80,9 @@ int cmd_board(int argc, char** argv);
 
 
 void initGame(char* fen, Player white, Player black, GameType gt);  // init all, setup history, ui, etc.
-static CommandAbstract* getCommand(char input[], int nCmds);
-static int tokenize(char* line, char** argv);
-static void getInput(char* input, size_t size);
+CommandAbstract* getCommand(char input[], int nCmds);
+int tokenize(char* line, char** argv);
+void getInput(char* input, size_t size);
 
 
 
