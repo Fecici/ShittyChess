@@ -69,10 +69,63 @@ void printPinsBitboards(Board* b);
 void printCheckersBitboards(Board* b);
 
 // these handle the formatting and arg processing before calling the functions they map to
-int cmd_undo(int argc, char** argv);
-int cmd_move(int argc, char** argv);
+int cmd_undo(int argc, char** argv) {
+
+    // uhhh so i guess the -f literally does nothing lmfao
+
+    // only one flag
+    bool force = false;
+
+    Board* b = game->board;
+    Gamestack* stack = b->gamestack;
+    Undo undo = stack->undoStack[stack->ply];
+
+    if (argc <= 1) {
+        ///TODO: 
+        //check that we can undo
+        performUndo(b, undo);
+
+        return 0;
+    }
+
+    for (int i = 1; i < argc; i++) {
+        if (strncmp(argv[i], "-f", 2) != 0) {
+            continue;
+        }
+
+        else {
+            force = true;
+        }
+    }
+
+    if (!force) {
+        ///TODO:
+        // check if we can undo
+        performUndo(b, undo);
+
+        return 0;
+    }
+
+    else {
+        performUndo(b, undo);
+    }
+
+    return 0;
+
+}
+
+int cmd_move(int argc, char** argv) {
+
+    (void) argc;
+    (void) argv;
+
+    return 0;
+}
+
 int cmd_perft(int argc, char** argv);
+
 int cmd_children(int argc, char** argv);
+
 
 int cmd_quit(int argc, char** argv) { 
     ///TODO: free heap
