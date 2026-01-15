@@ -78,7 +78,7 @@ int cmd_undo(int argc, char** argv) {
 
     Board* b = game->board;
     Gamestack* stack = b->gamestack;
-    Undo undo = stack->undoStack[stack->ply];
+    Undo* undo = &(stack->undoStack[stack->ply]);
 
     if (argc <= 1) {
         ///TODO: 
@@ -116,13 +116,81 @@ int cmd_undo(int argc, char** argv) {
 
 int cmd_move(int argc, char** argv) {
 
-    (void) argc;
-    (void) argv;
+    Board* b = game->board;
+
+    bool force = false;
+    bool visual = false;
+    Move mv = 0;
+
+    if (argc <= 1) {
+        return 1;
+    }
+
+    for (int i = 2; i < argc; i++) {
+        if (strncmp(argv[i], "-f", 2) == 0) {
+            force = true;
+        }
+
+        else if (strncmp(argv[i], "-v", 2) == 0) {
+            visual = true;
+        }
+
+        else if (strncmp(argv[i], "-m", 2) == 0) {
+            char* mvHex = argv[++i];
+            mv = (Move) strtol(mvHex, NULL, 0);
+        }
+    }
+
+    if (mv != 0) {
+        if (visual) {
+            Undo* undo = getUndoFromMove(b, mv);
+            performMove(b, mv);
+            printBoard(b);
+            performUndo(b, undo);
+            return 0;
+        }
+
+        if (!force) { 
+            // idk lol
+            //check legal
+            performMove(b, mv);
+            return 0;
+        }
+    }
+
+    // "move e2e4 -f -v -etc"
+    char* strMove = argv[1];
+    if (!validMoveNotation(strMove)) return 1;
+
+    mv = getMoveFromNotation(b, strMove);
+    if (!force) {
+        // check legal
+        performMove(b, mv);
+        return 0;
+    }
+
+    if (visual) {
+        Undo* undo = getUndoFromMove(b, mv);
+        performMove(b, mv);
+        printBoard(b);
+        performUndo(b, undo);
+        return 0;
+    }
+
+    else {
+        performMove(b, mv);
+    }
 
     return 0;
 }
 
-int cmd_perft(int argc, char** argv);
+int cmd_perft(int argc, char** argv) {
+
+
+
+
+    return 0;
+}
 
 int cmd_children(int argc, char** argv);
 
@@ -205,6 +273,65 @@ void initGame(char* fen, Player white, Player black, GameType gt) {
 
     return;
 
+}
+
+Undo* getUndoFromMove(Board* b, Move move) {
+
+
+
+    void* u;
+
+    return (Undo*) u;
+}
+
+Move getMoveFromNotation(Board* b, char* moveStr) {
+
+    // we assume valid notation at this point
+
+    Move m;
+
+    return m;
+}
+
+bool validMoveNotation(char* moveStr) {
+
+    char promo;
+
+    if (strncmp(moveStr, "O-O-O", 5) == 0) {
+        return true;
+    }
+
+    if (strncmp(moveStr, "O-O", 3) == 0) {
+        return true;
+    }
+
+    if (strnlen(moveStr, 4) != 4) {
+        if (strnlen(moveStr, 5) == 5) {
+            goto handlePromotion;
+        }
+        return false;
+    }
+
+    normalAlgebraMoveStrHandle:
+    char srcFile, srcRank, dstFile, dstRank;
+    srcFile = moveStr[0];
+    dstFile = moveStr[2];
+    srcRank = moveStr[1];
+    dstRank = moveStr[3];
+
+    if (!(srcFile >= 'a' && srcFile <= 'h' && dstFile >= 'a' && dstFile <= 'h')) { return false; }
+    if (!(srcRank >= '1' && srcRank <= '8' && dstRank >= '1' && dstRank <= '8')) { return false; }
+
+    return true;  // we will not worry about the fact that the rank must be 1 or 8 depending on the promo, but we will just let the application deal with this
+
+    handlePromotion:
+    promo = moveStr[4];
+    char tester = promo ^ 'q' ^ 'b' ^ 'r' ^ 'n';
+    if (tester == 0 && promo != 0) {
+        goto normalAlgebraMoveStrHandle;
+    }
+
+    return false;
 }
 
 // this needs to turn all whitespace into a '\0' and count the args. this also mutates argv
@@ -513,7 +640,7 @@ Move getmove(Board* b, Player player);
 bool isValidMove(Board* b, Move move); 
 void handleIllegal();
 
-void performUndo(Board* b, Undo undo);
+void performUndo(Board* b, Undo* undo);
 void performMove(Board* b, Move move);
 
 // one of these is chosen for the performCommand pointer 

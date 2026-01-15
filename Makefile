@@ -10,7 +10,8 @@ SRC = \
 	src/cli/ui.c \
 	src/util/bitUtils.c \
 	src/util/printUtils.c \
-	src/util/zobrist.c
+	src/util/zobrist.c \
+	src/util/search.c
 
 OUT = shittychess.exe
 
