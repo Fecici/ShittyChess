@@ -1,233 +1,9 @@
 #include "cli.h"
 
-// hold data for commands to be checked against by the tokenizer and the getCommand (we check against name and return the cmd)
-CommandAbstract cmds[] = {
-    {.name = "help", .cmd = cmd_help},
-    {.name = "undo", .cmd = cmd_undo},
-    {.name = "move", .cmd = cmd_move},
-    {.name = "perft", .cmd = cmd_perft},
-    {.name = "children", .cmd = cmd_children},
-    {.name = "quit", .cmd = cmd_quit},
-    {.name = "resign", .cmd = cmd_resign},
-    {.name = "fen", .cmd = cmd_fen},
-    {.name = "legal-moves", .cmd = cmd_moves},
-    {.name = "history", .cmd = cmd_hist},
-    {.name = "eval", .cmd = cmd_eval},
-    {.name = "hash", .cmd = cmd_hash},
-    {.name = "atk", .cmd = cmd_att},
-    {.name = "pins", .cmd = cmd_pins},
-    {.name = "checkers", .cmd = cmd_checkers},
-    {.name = "board", .cmd = cmd_board}
-
-};
-
 Game* game;  // this will hold the globals we need
 
-/*
-CMDS: 
-help
-fen <string> / startpos
-d (display board)
-moves (print legal moves in UCI)
-perft <depth>
-go <depth> or go movetime <ms>
-undo / redo
-history
-eval - likely a 0 for now, or greedy. doesnt matter atm
-hash (print zobrist)
-att <sq> (print attacks to/from a square)
-pins (print pinned pieces mask)
-checkers (print checkers mask)
-quit
-
-command abstract wrapper mappings
-cmd_undo      ---> void handleUndo(Board* b, Undo undo);
-cmd_move      ---> void handleMakeMove(Board* b, Move move);
-cmd_perft     ---> void handlePerft(Board* b);
-cmd_children  ---> void handleChildren(Board* b);
-cmd_quit      ---> void handleQuit();
-cmd_resign    ---> void handleResign(Board* b);
-cmd_help      ---> void prinHelp();
-cmd_fen       ---> bool loadFromFen(Board* b, const char* fen);
-cmd_moves     ---> void printLegalMoves(Board* b);
-cmd_hist      ---> void printHistory(History* h);
-cmd_eval      ---> void printEval(Board* b);
-cmd_hash      ---> void printZobrist(Board* b);  // written in printUtils
-cmd_att       ---> void printAttacksFromSquare(Board* b, Square sq);
-cmd_pins      ---> void printPinsBitboards(Board* b);
-cmd_checkers  ---> void printCheckersBitboards(Board* b);
-cmd_board     ---> void printBoard(Board* b);  // written in printUtils
-
-*/
-///TODO: these need to be added to the header file as signatures
-void printHelp();
-void printLegalMoves(Board* b);
-void printHistory(History* h);
-void printEval(Board* b);  // eval will be written somewhere else, this is a printing wrapper
-void printAttacksFromSquare(Board* b, Square sq);
-void printPinsBitboards(Board* b);
-void printCheckersBitboards(Board* b);
-
-// these handle the formatting and arg processing before calling the functions they map to
-int cmd_undo(int argc, char** argv) {
-
-    // uhhh so i guess the -f literally does nothing lmfao
-
-    // only one flag
-    bool force = false;
-
-    Board* b = game->board;
-    Gamestack* stack = b->gamestack;
-    Undo* undo = &(stack->undoStack[stack->ply]);
-
-    if (argc <= 1) {
-        ///TODO: 
-        //check that we can undo
-        performUndo(b, undo);
-
-        return 0;
-    }
-
-    for (int i = 1; i < argc; i++) {
-        if (strncmp(argv[i], "-f", 2) != 0) {
-            continue;
-        }
-
-        else {
-            force = true;
-        }
-    }
-
-    if (!force) {
-        ///TODO:
-        // check if we can undo
-        performUndo(b, undo);
-
-        return 0;
-    }
-
-    else {
-        performUndo(b, undo);
-    }
-
-    return 0;
-
-}
-
-int cmd_move(int argc, char** argv) {
-
-    Board* b = game->board;
-
-    bool force = false;
-    bool visual = false;
-    Move mv = 0;
-
-    if (argc <= 1) {
-        return 1;
-    }
-
-    for (int i = 2; i < argc; i++) {
-        if (strncmp(argv[i], "-f", 2) == 0) {
-            force = true;
-        }
-
-        else if (strncmp(argv[i], "-v", 2) == 0) {
-            visual = true;
-        }
-
-        else if (strncmp(argv[i], "-m", 2) == 0) {
-            char* mvHex = argv[++i];
-            mv = (Move) strtol(mvHex, NULL, 0);
-        }
-    }
-
-    if (mv != 0) {
-        if (visual) {
-            Undo* undo = getUndoFromMove(b, mv);
-            performMove(b, mv);
-            printBoard(b);
-            performUndo(b, undo);
-            return 0;
-        }
-
-        if (!force) { 
-            // idk lol
-            //check legal
-            performMove(b, mv);
-            return 0;
-        }
-    }
-
-    // "move e2e4 -f -v -etc"
-    char* strMove = argv[1];
-    if (!validMoveNotation(strMove)) return 1;
-
-    mv = getMoveFromNotation(b, strMove);
-    if (!force) {
-        // check legal
-        performMove(b, mv);
-        return 0;
-    }
-
-    if (visual) {
-        Undo* undo = getUndoFromMove(b, mv);
-        performMove(b, mv);
-        printBoard(b);
-        performUndo(b, undo);
-        return 0;
-    }
-
-    else {
-        performMove(b, mv);
-    }
-
-    return 0;
-}
-
-int cmd_perft(int argc, char** argv) {
-
-
-
-
-    return 0;
-}
-
-int cmd_children(int argc, char** argv);
-
-
-int cmd_quit(int argc, char** argv) { 
-    ///TODO: free heap
-    (void) argc; 
-    (void) argv; 
-    handleQuit(); 
-    return 0;
-}
-
-int cmd_resign(int argc, char** argv);
-int cmd_help(int argc, char** argv);
-int cmd_fen(int argc, char** argv);
-int cmd_moves(int argc, char** argv);
-int cmd_hist(int argc, char** argv);
-int cmd_eval(int argc, char** argv);
-
-int cmd_hash(int argc, char** argv);
-
-int cmd_att(int argc, char** argv);
-int cmd_pins(int argc, char** argv);
-int cmd_checkers(int argc, char** argv);
-
-
-int cmd_board(int argc, char** argv) {
-    // for now
-    (void) argc;
-    (void) argv;
-    printBoard(game->board);
-
-    return 0;
-}
-
  // init all, setup history, ui, etc.
-void initGame(char* fen, Player white, Player black, GameType gt) {
+Game* initGame(char* fen, Player white, Player black, GameType gt) {
 
     /*
     typedef struct {
@@ -243,7 +19,13 @@ void initGame(char* fen, Player white, Player black, GameType gt) {
     History history;
 } Game;*/
 
-    Board* b = (Board*) malloc(sizeof(Board));
+    if (game == NULL) {
+        game = (Game*) calloc(1, sizeof(Game));
+    }
+
+    if (game == NULL) {fprintf(stderr, "Failed to allocate memory for game.\n"); exit(1); }
+
+    Board* b = (Board*) calloc(1, sizeof(Board));
 
     if (b == NULL) {fprintf(stderr, "Failed to allocate memory for board.\n"); exit(1); }
 
@@ -251,8 +33,8 @@ void initGame(char* fen, Player white, Player black, GameType gt) {
 
     game->white = white;
     game->black = black;
-
-    if (!loadFromFen(b, fen)) {
+    //printf(fen);
+    if (fen != NULL && !loadFromFen(b, fen)) {
         fprintf(stderr, "Failed to parse fen string: %s\n", fen);
         exit(1);
     }
@@ -271,114 +53,7 @@ void initGame(char* fen, Player white, Player black, GameType gt) {
 
     game->ui = ui;
 
-    return;
-
-}
-
-Undo* getUndoFromMove(Board* b, Move move) {
-
-
-
-    void* u;
-
-    return (Undo*) u;
-}
-
-Move getMoveFromNotation(Board* b, char* moveStr) {
-
-    // we assume valid notation at this point
-
-    Move m;
-
-    return m;
-}
-
-bool validMoveNotation(char* moveStr) {
-
-    char promo;
-
-    if (strncmp(moveStr, "O-O-O", 5) == 0) {
-        return true;
-    }
-
-    if (strncmp(moveStr, "O-O", 3) == 0) {
-        return true;
-    }
-
-    if (strnlen(moveStr, 4) != 4) {
-        if (strnlen(moveStr, 5) == 5) {
-            goto handlePromotion;
-        }
-        return false;
-    }
-
-    normalAlgebraMoveStrHandle:
-    char srcFile, srcRank, dstFile, dstRank;
-    srcFile = moveStr[0];
-    dstFile = moveStr[2];
-    srcRank = moveStr[1];
-    dstRank = moveStr[3];
-
-    if (!(srcFile >= 'a' && srcFile <= 'h' && dstFile >= 'a' && dstFile <= 'h')) { return false; }
-    if (!(srcRank >= '1' && srcRank <= '8' && dstRank >= '1' && dstRank <= '8')) { return false; }
-
-    return true;  // we will not worry about the fact that the rank must be 1 or 8 depending on the promo, but we will just let the application deal with this
-
-    handlePromotion:
-    promo = moveStr[4];
-    char tester = promo ^ 'q' ^ 'b' ^ 'r' ^ 'n';
-    if (tester == 0 && promo != 0) {
-        goto normalAlgebraMoveStrHandle;
-    }
-
-    return false;
-}
-
-// this needs to turn all whitespace into a '\0' and count the args. this also mutates argv
-int tokenize(char* line, char** argv) {
-
-    int argc = 0;
-    char* split = line;
-    while (*split) {
-        // skip until whitespace
-        while (!isspace((unsigned char) *split)) split++;
-        
-        if (!*split) break;
-        if (argc >= MAX_ARG) return argc;
-
-        argv[argc] = split;
-        argc++;
-
-        // fill whitespace with \0
-        while (*split && !isspace((unsigned char) *split)) split++;
-        if (*split) *split = '\0';
-        split++;
-    }
-
-    return argc;
-
-}
-
-void getInput(char* input, size_t size) {
-
-    printf(">>> ");
-    if (!fgets(input, (int) size, stdin)) {
-        fprintf(stderr, "Error reading command, try again...\n"); 
-        return getInput(input, size);
-    }
-
-    // strip
-    input[strcspn(input, "\r\n")] = '\0';
-}
-
-CommandAbstract* getCommand(char input[], int nCmds) {
-
-    for (int i = 0; i < nCmds; i++) {
-        if (strncmp(input, cmds[i].name, MAX_CMD_NAME)) return &cmds[i];
-    }
-
-    return NULL;
-
+    return game;
 }
 
 // terminal functions
@@ -409,194 +84,13 @@ void handleCheckmate(Board* b) {
 
 }
 
-bool isCharInt(const char c) {
-    return '0' <= c && c <= '9';
-}
-
-
-Piece getPieceFromChar(const char c) {
-
-    switch (c) {
-        case 'P': return WP;
-        case 'N': return WN;
-        case 'B': return WB;
-        case 'R': return WR;
-        case 'K': return WK;
-        case 'Q': return WQ;
-
-        case 'p': return BP;
-        case 'n': return BN;
-        case 'b': return BB;
-        case 'r': return BR;
-        case 'k': return BK;
-        case 'q': return BQ;
-        default: return EMPTY;  // not valid piece
-    }
-}
-
-static inline bool isValidPiece(const char c) {
-    // basically one of these will kill c if its valid
-    return !(
-        (c ^ 'r') & (c ^ 'n') & (c ^ 'b') & (c ^ 'q') & (c ^ 'k') & (c ^ 'p') &
-        (c ^ 'R') & (c ^ 'N') & (c ^ 'B') & (c ^ 'Q') & (c ^ 'K') & (c ^ 'P')
-    );
-}
-
-static inline unsigned int getSquareIndex(const int i, const int j) {
-
-    // i gives the chunk, j gives the index.
-    // eg, 00001000 00000000 ...
-    // is the 0th i and 3rd j, and the square is 59. so we need the conversion 64 - i*8 + j - 8 = 56 - i * 8 + j
-    return (unsigned int) (56 - i * 8 + j);
-
-}
-
-// return the uint64_t with a 1 in the position of rank 8 - i and file j
-static inline uint64_t getPieceBitboardSetter(const int i, const int j) {
-
-    uint64_t k = 1;
-
-    return k << getSquareIndex(i, j);
-}
-
-static inline uint8_t getValidCastlingFen(const char c) {
-    switch (c) {
-        case 'K': return whiteShortCastleMask;
-        case 'Q': return whiteLongCastleMask;
-        case 'k': return blackShortCastleMask;
-        case 'q': return blackLongCastleMask;
-        default:  return 0x0;
-    }
-}
-
-static inline uint8_t convertSquareNotationToEP(const char file, const char rank) {
-
-    if (rank != '3' || rank != '6' || rank < '1' || rank > '8') return 0;
-
-    uint8_t k = 16;
-    k += (uint8_t) (file - '0' - 1);
-    if (rank == '6') k += 24;
-    return k;
-
-}
-
-static inline unsigned int convertFullmoveStringToPly(const char* fullmoves, uint64_t blackToMove) {
-
-
-    return ((((unsigned int) strtol(fullmoves, NULL, 0)) - 1) << 1) + ((unsigned int) blackToMove);
-
-}
-
-bool loadFromFen(Board* b, char* fen) {
-
-    for (int i = 0; i < 8; i++) { 
-        for (int j = 0; j < 8; j++) {
-
-            fen++;
-            char c = *fen;
-            
-            if (isCharInt(c)) {
-                fen += (c - 0x30) - 1;  // add int to fen ptr
-                continue;
-            }
-
-            if (!isValidPiece(c)) return false;
-            Piece piece = getPieceFromChar(c);
-            if (piece == EMPTY) return false;
-            uint8_t pieceIndex = getBitboardIndex(piece);
-            unsigned int squareIndex = getSquareIndex(i, j);
-
-            b->pieces[squareIndex] = piece;
-            b->bitboards[pieceIndex] |= getPieceBitboardSetter(i, j);
-        }
-
-    }
-
-    if (*fen != ' ') return false;
-    fen++;
-
-    uint8_t colourToMove = 0;
-    if (*fen == 'b') colourToMove = 1;
-    else if (*fen != 'w') return false;
-    setColourToMove(&(b->gameState), colourToMove);
-    fen += 2;
-    if (*fen != '-') {
-        
-        while (*fen != ' ') {
-            uint8_t castleState = getValidCastlingFen(*fen);
-            if (!castleState) return false;
-
-            orCastlingRights(&(b->gameState), castleState);
-            fen++;
-        }
-    }
-    else {
-        fen++;
-    }
-
-    if (*fen != ' ') return false;
-    fen++;
-    if (*fen != '-') {
-
-        char file = *fen;
-        char rank = *(fen + 1);
-
-        uint8_t epSquare = convertSquareNotationToEP(file, rank);
-        if (!epSquare) return false;
-        setEnPassantSquare(&(b->gameState), epSquare);
-        fen += 2;
-    }
-    else fen++;
-    if (*fen != ' ') return false;
-    fen++; 
-    
-    char digit1 = *fen;
-    char digit2 = *(fen + 1);
-    fen += 2;
-
-    uint8_t halfmove = 0;
-
-    if (!isCharInt(digit1)) return false;
-
-    if (digit1 == '0') {
-        if (digit2 != ' ') return false;
-    }
-    else {
-
-        if (digit2 == ' ') {
-            halfmove = (uint8_t) (digit1 - 0x30);
-        }
-
-        else {
-            if (!isCharInt(digit2)) return false;
-            halfmove = (uint8_t) (((uint8_t) (digit1 - 0x30)) * 10 + ((uint8_t) (digit2 - 0x30)));
-            if (*fen != ' ') return false;
-            fen++;
-        }
-    }
-    setHalfmoveClock(&(b->gameState), halfmove);
-
-    char* fullmoves = fen;  // from here until \0
-    unsigned int fenPly = convertFullmoveStringToPly(fullmoves, colourToMove);
-
-    if (!fenPly) return false;
-    fenPly += colourToMove;
-    b->ply = fenPly;
-
-    b->zobrist = generateZobristHash(b);
-
-    return true;
-}
-
-// convert position to fen (lets call this with a flag in the fen cmd)
-char* convertToFen(Board* b);
-
 void cliMainLoop(Game* g, void (*performCommand)(Board* b)) {
 
     game = g;  // set our global game ptr to the one passed in
+    setCommandGame(g);
     (void) performCommand;  // for now
 
-    int nCmds = (int)(sizeof(cmds) / sizeof(CommandAbstract));
+    int nCmds = getCommandCount();
 
     
     char input[MAX_STDIN];
@@ -633,25 +127,4 @@ void cliMainLoop(Game* g, void (*performCommand)(Board* b)) {
 
 
 }
-
-
-
-Move getmove(Board* b, Player player);
-bool isValidMove(Board* b, Move move); 
-void handleIllegal();
-
-void performUndo(Board* b, Undo* undo);
-void performMove(Board* b, Move move);
-
-// one of these is chosen for the performCommand pointer 
-///TODO: not anymore, we're doign something different. could be a bool
-void __DEBUG_performCommand(Board* b);
-void noDebugGetMove(Board* b);
-
-// commands:
-void handleUndo(Board* b, Undo undo);
-void handleMakeMove(Board* b, Move move);
-void handlePerft(Board* b);
-void handleChildren(Board* b);
 void handleQuit() {exit(0);}
-void handleResign(Board* b);

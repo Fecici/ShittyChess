@@ -1,5 +1,9 @@
 #include "main.h"
 
+#ifdef _WIN32
+#include <windows.h>
+#endif
+
 char* const startFen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
 /*https://gist.github.com/peterellisjones/8c46c28141c162d1d8a0f0badbc9cff9*/
@@ -23,6 +27,11 @@ const char* testFens[] = {
 };
 
 int main() {
+
+    #ifdef _WIN32
+    SetConsoleOutputCP(CP_UTF8);
+    #endif
+
 
     // init board
 
@@ -48,7 +57,8 @@ int main() {
     Player white = {HUMAN, WHITE, NULL};
     Player black = {HUMAN, BLACK, NULL};
 
-    initGame(fen, white, black, HvH);
+    Game* game = initGame(fen, white, black, HvH);
+    cliMainLoop(game, NULL);
     
 
     return 0;
