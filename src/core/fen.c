@@ -1,10 +1,5 @@
 #include "fen.h"
 
-bool isCharInt(const char c) {
-    return '0' <= c && c <= '9';
-}
-
-
 Piece getPieceFromChar(const char c) {
 
     switch (c) {
@@ -45,14 +40,6 @@ char getCharFromPiece(Piece piece) {
     }
 }
 
-static inline bool isValidPiece(const char c) {
-    // basically one of these will kill c if its valid
-    return !(
-        (c ^ 'r') & (c ^ 'n') & (c ^ 'b') & (c ^ 'q') & (c ^ 'k') & (c ^ 'p') &
-        (c ^ 'R') & (c ^ 'N') & (c ^ 'B') & (c ^ 'Q') & (c ^ 'K') & (c ^ 'P')
-    );
-}
-
 static inline unsigned int getSquareIndex(const int i, const int j) {
 
     // i gives the chunk, j gives the index.
@@ -82,10 +69,10 @@ static inline uint8_t getValidCastlingFen(const char c) {
 
 static inline uint8_t convertSquareNotationToEP(const char file, const char rank) {
 
-    if (rank != '3' || rank != '6' || rank < '1' || rank > '8') return 0;
+    if ((rank != '3' && rank != '6') || (file < 'a' || file > 'h')) return 0;
 
     uint8_t k = 16;
-    k += (uint8_t) (file - '0' - 1);
+    k += (uint8_t) (file - 'a');
     if (rank == '6') k += 24;
     return k;
 
@@ -206,7 +193,6 @@ bool loadFromFen(Board* b, char* fen) {
     unsigned int fenPly = convertFullmoveStringToPly(fullmoves, colourToMove);
 
     //if (!fenPly) return false;  // this should start at 0 when fullmove = 1 and white to move
-    fenPly += colourToMove;
     b->ply = fenPly;
 
     b->zobrist = generateZobristHash(b);
@@ -214,7 +200,7 @@ bool loadFromFen(Board* b, char* fen) {
     return true;
 }
 
-// convert position to fen (lets call this with a flag in the fen cmd)
+// convert position to fen
 char* convertToFen(Board* b) {
     char* fen = calloc(128, sizeof(char));  // this is definitely big enough for a fen string
     if (!fen) {

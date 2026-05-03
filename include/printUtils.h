@@ -5,12 +5,17 @@
 #include "bitUtils.h"
 #include "history.h"
 
-void printGameState(Board* b);
+void printGameState(Board* b, bool makeSquare);
 void printBoard(Board* b);
-void printBitboards(Board* b);
+void printBitboards(Board* b, bool makeSquare);
 void printBitBoard(uint64_t bitboard, char* name, bool makeSquare);
 void printZobrist(Board* b);
 void printColour(Board* b);
+void printBitboardHex(uint64_t bitboard, char* name);
+char* getPieceNameFromIndex(uint8_t piece);
+void printBitboardHexAll(Board* b);
+char* getPieceNameFromPiece(Piece piece);
+
 
 // Command stuff
 void printHelp();

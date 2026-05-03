@@ -23,7 +23,7 @@ int cmd_help(int argc, char** argv);
 
 idk just print help stuff
 
-int cmd_fen(int argc, char** argv);
+XXXXXXXXXXXXXXXXXXXXXXXXX int cmd_fen(int argc, char** argv);
 
 -default, prints board fen, -l to load fen to board.
 
@@ -64,5 +64,5 @@ int cmd_board(int argc, char** argv) {
     return 0;
 }
 
--b bitboard -x hex -g gamestate -gx gamestate hex
+-b for bitboard, -bx for bitboard in hex -g gamestate, -gx gamestate hex. non x is printed in binary by default, -z zobrist
 

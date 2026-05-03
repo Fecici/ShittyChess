@@ -303,9 +303,112 @@ int cmd_checkers(int argc, char** argv) {
 int cmd_board(int argc, char** argv) {
     // for now
     ///TODO: there are some more specs that i want implemented later, found in the txt
-    (void) argc;
-    (void) argv;
-    printBoard(game->board);
+    // -b for bitboard, optional -p to specify piece, capitalizd for white under normal fen notation, 
+    // -bx for bitboard in hex -g gamestate, -gx gamestate hex. non x is printed in binary by default
+    // the bitboards with unspecified pieces otherwise are labeled and all are printed
+    // if -s passed after -b in args, print square bitboard
+    // -z is zobrist (already hex). print immediately and exit
+
+    if (argc <= 1) {
+        printBoard(game->board);
+        return 0;
+    }
+
+    Piece piece = EMPTY;  // default
+    uint8_t pieceIndex = 0;
+    uint64_t bitboard = 0;
+
+    bool flag_b = false;
+    bool flag_x = false;
+    bool specifiedPiece = false;
+    bool make_square = false;
+
+    for (int i = 0; i < argc; i++) {
+
+        if (strncmp(argv[i], "--default", 9) == 0) {
+            printBoard(game->board);
+            return 0;
+        }
+
+        if (strncmp(argv[i], "-z", 2) == 0) {
+            printZobrist(game->board);
+            return 0;
+        }
+
+        if (strncmp(argv[i], "-b", 2) == 0) {
+
+            flag_b = true;
+            continue;
+        }
+
+        // ply --ply
+        if (strncmp(argv[i], "--ply", 5) == 0) {
+            printf("Ply: %d\n", game->board->ply);
+            return 0;
+        }
+
+        // print bitboard
+        // check for piece specifier
+        // check for -p flag
+        if (strncmp(argv[i], "-bx", 3) == 0) {
+            flag_b = true;
+            flag_x = true;
+            continue;
+        }
+
+        if (strncmp(argv[i], "-g", 2) == 0) {
+            printGameState(game->board, make_square);
+            return 0;
+        }
+        
+        if (flag_b) {
+            if (strncmp(argv[i], "-p", 2) == 0) {
+                if (i + 1 < argc) {
+                    char* pieceStr = argv[++i];
+                    if (!isValidPiece(pieceStr[0])) {
+                        fprintf(stderr, "Error: Invalid piece specifier\n");
+                        return 1;
+                    }
+                    piece = getPieceFromChar(pieceStr[0]);
+                    pieceIndex = getBitboardIndex(piece);
+                    bitboard = game->board->bitboards[pieceIndex];
+                    specifiedPiece = true;
+                } else {
+                    fprintf(stderr, "Error: -p option requires a piece specifier argument\n");
+                    return 1;
+                }
+            } else if (!flag_x && strncmp(argv[i], "-s", 2) == 0) {
+                make_square = true;
+                continue;
+            }
+        }
+            
+        
+    }
+    // if the user is retarded and puts in multiple flags, we let fate decide
+    if (flag_b && !flag_x) {
+        if (specifiedPiece) {
+            printBitBoard(bitboard, getPieceNameFromIndex(pieceIndex), make_square);  // i fucking forgot to fix the name
+            return 0;
+        }
+        
+        printBitboards(game->board, make_square);
+        return 0;
+
+    } else if (flag_b && flag_x) {
+
+        if (specifiedPiece) {
+            printBitboardHex(bitboard, getPieceNameFromIndex(pieceIndex));
+            return 0;
+        }
+        
+        printBitboardHexAll(game->board);
+        return 0;
+
+    } else {
+        fprintf(stderr, "Error: Invalid flag combination\n");
+        return 1;
+    }
 
     return 0;
 }

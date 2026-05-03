@@ -19,14 +19,48 @@ static char* const pieceCodes[12] = {
     };
 
 
+static char* const pieceNames[13] = {
+
+        "White Pawn",
+        "White Knight",
+        "White Bishop",
+        "White Rook",
+        "White Queen",
+        "White King",
+        "Black Pawn",
+        "Black Knight",
+        "Black Bishop",
+        "Black Rook",
+        "Black Queen",
+        "Black King",
+        "EMPTY"
+    };
 
 
-void printGameState(Board* b) {
+char* getPieceNameFromPiece(Piece piece) {
+    if (piece == EMPTY) return pieceNames[12];
+    return pieceNames[getBitboardIndex(piece)];
+}
+
+char* getPieceNameFromIndex(uint8_t index) {
+    if (index > 11) return pieceNames[12];
+    return pieceNames[index];
+}
+
+
+void printGameState(Board* b, bool makeSquare) {
 
     printf("Current game state - move %u\n", getMoveCount(b->ply));
     printf("gameState hex: %x\n", b->gameState);
+    printf("gameState binary: ");
+    for (int i = 31; i >= 0; i--) {
+        uint32_t k = ((uint32_t)1 << i);
+        if (k & b->gameState) printf("1");
+        else                  printf("0");
+    }
+    printf("\n");
     printBoard(b);
-    printBitboards(b);
+    printBitboards(b, makeSquare);
     printZobrist(b);
 
 }
@@ -58,21 +92,43 @@ void printBoard(Board* b) {
     printf("   | a | b | c | d | e | f | g | h |\n");
 }
 
-void printBitboards(Board* b) {
+void printBitboardHex(uint64_t bitboard, char* name) {
+    printf("%s: %llx\n", name, bitboard);
+}
 
-    printBitBoard(b->bitboards[iWP], "White Pawns",   false);
-    printBitBoard(b->bitboards[iWN], "White Knights", false);
-    printBitBoard(b->bitboards[iWB], "White Bishops", false);
-    printBitBoard(b->bitboards[iWR], "white Rooks",   false);
-    printBitBoard(b->bitboards[iWQ], "White Queens",  false);
-    printBitBoard(b->bitboards[iWK], "White King",    false);
+void printBitboardHexAll(Board* b) {
 
-    printBitBoard(b->bitboards[iBP], "Black Pawns",   false);
-    printBitBoard(b->bitboards[iBN], "Black Knights", false);
-    printBitBoard(b->bitboards[iBB], "Black Bishops", false);
-    printBitBoard(b->bitboards[iBR], "Black Rooks",   false);
-    printBitBoard(b->bitboards[iBQ], "Black Queens",  false);
-    printBitBoard(b->bitboards[iBK], "Black King",    false);
+    printBitboardHex(b->bitboards[iWP], "White Pawns");
+    printBitboardHex(b->bitboards[iWN], "White Knights");
+    printBitboardHex(b->bitboards[iWB], "White Bishops");
+    printBitboardHex(b->bitboards[iWR], "white Rooks");
+    printBitboardHex(b->bitboards[iWQ], "White Queens");
+    printBitboardHex(b->bitboards[iWK], "White King");
+
+    printBitboardHex(b->bitboards[iBP], "Black Pawns");
+    printBitboardHex(b->bitboards[iBN], "Black Knights");
+    printBitboardHex(b->bitboards[iBB], "Black Bishops");
+    printBitboardHex(b->bitboards[iBR], "Black Rooks");
+    printBitboardHex(b->bitboards[iBQ], "Black Queens");
+    printBitboardHex(b->bitboards[iBK], "Black King");
+
+}
+
+void printBitboards(Board* b, bool makeSquare) {
+
+    printBitBoard(b->bitboards[iWP], "White Pawns",   makeSquare);
+    printBitBoard(b->bitboards[iWN], "White Knights", makeSquare);
+    printBitBoard(b->bitboards[iWB], "White Bishops", makeSquare);
+    printBitBoard(b->bitboards[iWR], "white Rooks",   makeSquare);
+    printBitBoard(b->bitboards[iWQ], "White Queens",  makeSquare);
+    printBitBoard(b->bitboards[iWK], "White King",    makeSquare);
+
+    printBitBoard(b->bitboards[iBP], "Black Pawns",   makeSquare);
+    printBitBoard(b->bitboards[iBN], "Black Knights", makeSquare);
+    printBitBoard(b->bitboards[iBB], "Black Bishops", makeSquare);
+    printBitBoard(b->bitboards[iBR], "Black Rooks",   makeSquare);
+    printBitBoard(b->bitboards[iBQ], "Black Queens",  makeSquare);
+    printBitBoard(b->bitboards[iBK], "Black King",    makeSquare);
 
 }
 
@@ -112,7 +168,7 @@ void printBitBoard(uint64_t bitboard, char* name, bool makeSquare) {
 
 void printZobrist(Board* b) {
 
-    printf("\nZobrist:\t%llx", b->zobrist);
+    printf("\nZobrist:\t%llx\n", b->zobrist);
 
 }
 

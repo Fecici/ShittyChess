@@ -99,7 +99,7 @@ void setHalfmoveClock(uint32_t* gamestate, uint8_t state) {
 
 void setEnPassantSquare(uint32_t* gamestate, uint8_t state) {
 
-    *gamestate = (*gamestate & ~GS_enpassantSquareMask) | ((state & 0x3FU) << 10);
+    *gamestate = (*gamestate & ~GS_enpassantSquareMask) | ((state & 0x3FU) << 4);
 
 }
 
