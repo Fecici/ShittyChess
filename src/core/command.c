@@ -228,8 +228,37 @@ int cmd_help(int argc, char** argv) {
     return 0;
 }
 int cmd_fen(int argc, char** argv) {
-    (void) argc;
-    (void) argv;
+    // --default, prints board fen, -l to load fen to board.
+
+    if (argc <= 1) {
+        char* fen = convertToFen(game->board);
+        printf("%s\n", fen);
+        free(fen);
+        return 0;
+    }
+
+    for (int i = 1; i < argc; i++) {
+        if (strncmp(argv[i], "--default", 9) == 0) {
+            char* fen = convertToFen(game->board);
+            printf("%s\n", fen);
+            free(fen);
+            return 0;
+        }
+        if (strncmp(argv[i], "-l", 2) == 0) {
+            if (i + 1 < argc) {
+                char* fen = argv[++i];
+                if (!validFen(fen)) {
+                    fprintf(stderr, "Error: Invalid FEN string\n");
+                    return 1;
+                }
+                loadFromFen(game->board, fen);
+                return 0;
+            } else {
+                fprintf(stderr, "Error: -l option requires a FEN string argument\n");
+                return 1;
+            }
+        }
+    }
     return 0;
 }
 int cmd_moves(int argc, char** argv) {
@@ -273,6 +302,7 @@ int cmd_checkers(int argc, char** argv) {
 
 int cmd_board(int argc, char** argv) {
     // for now
+    ///TODO: there are some more specs that i want implemented later, found in the txt
     (void) argc;
     (void) argv;
     printBoard(game->board);

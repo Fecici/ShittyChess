@@ -25,6 +25,26 @@ Piece getPieceFromChar(const char c) {
     }
 }
 
+char getCharFromPiece(Piece piece) {
+
+    switch (piece) {
+        case WP: return 'P';
+        case WN: return 'N';
+        case WB: return 'B';
+        case WR: return 'R';
+        case WK: return 'K';
+        case WQ: return 'Q';
+
+        case BP: return 'p';
+        case BN: return 'n';
+        case BB: return 'b';
+        case BR: return 'r';
+        case BK: return 'k';
+        case BQ: return 'q';
+        default: return ' ';  // not valid piece
+    }
+}
+
 static inline bool isValidPiece(const char c) {
     // basically one of these will kill c if its valid
     return !(
@@ -80,6 +100,9 @@ static inline unsigned int convertFullmoveStringToPly(const char* fullmoves, uin
 
 bool loadFromFen(Board* b, char* fen) {
 
+    // clear board first
+    memset(b, 0, sizeof(Board));
+
     //printf("%s\n", fen);
     for (int i = 0; i < 8; i++) { 
         //printf("%d\n", i);
@@ -94,7 +117,7 @@ bool loadFromFen(Board* b, char* fen) {
             }
             
             if (isCharInt(c)) {
-                j += (c - 0x30);  // add int to fen ptr
+                j += (c - 0x30) - 1;  // add int to fen ptr. subtract 1 because we count from 0
                 fen++;
                 continue;
             }
@@ -192,4 +215,92 @@ bool loadFromFen(Board* b, char* fen) {
 }
 
 // convert position to fen (lets call this with a flag in the fen cmd)
-char* convertToFen(Board* b);
+char* convertToFen(Board* b) {
+    char* fen = calloc(128, sizeof(char));  // this is definitely big enough for a fen string
+    if (!fen) {
+        fprintf(stderr, "Error: Memory allocation failed for FEN string\n");
+        return NULL;
+    }
+    int fenIndex = 0;
+
+    for (int i = 0; i < 8; i++) { 
+        int emptyCount = 0;
+        for (int j = 0; j < 8; j++) { 
+
+            Piece piece = b->pieces[getSquareIndex(i, j)];
+            if (piece == EMPTY) {
+                emptyCount++;
+            }
+            else {
+                if (emptyCount > 0) {
+                    fen[fenIndex++] = (char) (emptyCount + 0x30);
+                    emptyCount = 0;
+                }
+                char pieceChar = getCharFromPiece(piece);
+                fen[fenIndex++] = pieceChar;
+            }
+        }
+        if (emptyCount > 0) {
+            fen[fenIndex++] = (char) (emptyCount + 0x30);
+        }
+        if (i != 7) {
+            fen[fenIndex++] = '/';
+        }
+    }
+
+    fen[fenIndex++] = ' ';
+
+    uint8_t colourToMove = getColourToMove(b->gameState);
+    fen[fenIndex++] = colourToMove ? 'b' : 'w';
+
+    fen[fenIndex++] = ' ';
+
+    uint8_t castlingRights = getCastlingRights(b->gameState);
+    if (!castlingRights) {
+        fen[fenIndex++] = '-';
+    }
+    else {
+        if (castlingRights & whiteShortCastleMask) fen[fenIndex++] = 'K';
+        if (castlingRights & whiteLongCastleMask) fen[fenIndex++] = 'Q';
+        if (castlingRights & blackShortCastleMask) fen[fenIndex++] = 'k';
+        if (castlingRights & blackLongCastleMask) fen[fenIndex++] = 'q';
+    }
+
+    fen[fenIndex++] = ' ';
+
+    uint8_t epSquare = getEnPassantSquare(b->gameState);
+    if (!epSquare) {
+        fen[fenIndex++] = '-';
+    }
+    else {
+
+        char fileChar = (char)('a' + (epSquare % 8));
+        char rankChar = (char)('1' + (epSquare / 8));   
+
+        fen[fenIndex++] = fileChar;
+        fen[fenIndex++] = rankChar;
+    }
+    fen[fenIndex] = '\0';  // null terminate the fen string
+
+    uint8_t halfmoveClock = getHalfmoveClock(b->gameState);
+    char halfmoveStr[4];
+    snprintf(halfmoveStr, sizeof(halfmoveStr), "%d", halfmoveClock);
+    strcat(fen, " ");
+    strcat(fen, halfmoveStr);
+
+    char fullmoveStr[16];
+    snprintf(fullmoveStr, sizeof(fullmoveStr), "%u", (b->ply >> 1) + 1);
+    strcat(fen, " ");
+    strcat(fen, fullmoveStr);
+
+    return fen;
+}
+
+bool validFen(const char* fen) {
+
+    // this is basically just a check that the fen is valid, so we can call loadFromFen with the guarantee that it will work. 
+
+    // we can just try to load the fen into a dummy board and see if it works. 
+    Board dummyBoard = {0};
+    return loadFromFen(&dummyBoard, (char*) fen);
+}

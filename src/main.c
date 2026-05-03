@@ -26,12 +26,55 @@ const char* testFens[] = {
     "8/8/2k5/5q2/5n2/8/5K2/8 b - - 0 1"
 };
 
-int main() {
+int main(int argc, char** argv) {
 
     #ifdef _WIN32
     SetConsoleOutputCP(CP_UTF8);
     #endif
 
+    char* fen;
+    fen = startFen;  // default
+
+    for (int i = 0; i < argc; i++) {
+        if (strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0) {
+            printf("Usage: %s [options]\n", argv[0]);
+            printf("Options:\n");
+            printf("  --help, -h       Show this help message and exit\n");
+            printf("  --fen <FEN>     Start a game with the given FEN string\n");
+            return 0;
+        }
+
+        if (strcmp(argv[i], "--fen") == 0) {
+            if (i + 1 < argc) {
+
+                if (validFen(argv[i + 1])) {
+
+                    fen = argv[i + 1];
+
+                } else if (isdigit(argv[i + 1][0])) {
+
+                    int fenIndex = strtol(argv[i + 1], NULL, 10);
+                    
+                    if (fenIndex >= 0 && fenIndex < sizeof(testFens) / sizeof(testFens[0])) {
+
+                        fen = (char*)testFens[fenIndex];
+
+                    } else {
+                        fprintf(stderr, "Error: Invalid FEN index\n");
+                        return 1;
+                    }
+                } else {
+                    fprintf(stderr, "Error: Invalid FEN string\n");
+                    return 1;
+                }
+                i++; // Skip the FEN argument
+
+            } else {
+                fprintf(stderr, "Error: --fen option requires a FEN string argument or number\n");
+                return 1;
+            }
+        }
+    }
 
     // init board
 
@@ -50,10 +93,6 @@ int main() {
 
     // on exit, print exit information
 
-    char* fen;
-
-
-    fen = startFen;
     Player white = {HUMAN, WHITE, NULL};
     Player black = {HUMAN, BLACK, NULL};
 

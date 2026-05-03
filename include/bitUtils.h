@@ -17,7 +17,7 @@ uint8_t getPromotion(Move move);
 uint8_t getCapturedPieceCode(Move move);
 uint8_t getCapturedType(Move move);
 uint8_t getCapturedColour(Move move);
- 
+uint8_t getColourToMove(uint32_t gamestate);
 
 uint8_t getCastlingRights(uint32_t gamestate);
 uint8_t isBlackToMove(uint32_t gamestate);

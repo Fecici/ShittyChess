@@ -59,19 +59,38 @@ int tokenize(char* line, char** argv) {
         // skip until whitespace
         while (*split && isspace((unsigned char) *split)) split++;
         if (!*split) break;
-        if (argc >= MAX_ARG) return argc;
+        if (argc >= MAX_ARG - 1) break;
 
-        argv[argc] = split;
-        argc++;
+        if (*split == '"') {
+            split++;  // skip opening quote
+            argv[argc++] = split;  // token starts after quote
 
-        while (*split && !isspace((unsigned char) *split)) split++;
-        // fill whitespace with \0
-        if (*split) {
-            *split = '\0';
-            split++;
+            while (*split && *split != '"') {
+                split++;
+            }
+
+            if (*split == '"') {
+                *split = '\0';  // terminate quoted argument
+                split++;
+            } else {
+                fprintf(stderr, "Error: unmatched quote\n");
+                return -1;
+            } 
+        }
+        else {
+
+            argv[argc] = split;
+            argc++;
+    
+            while (*split && !isspace((unsigned char) *split)) split++;
+            // fill whitespace with \0
+            if (*split) {
+                *split = '\0';
+                split++;
+            }
         }
     }
-
+    argv[argc] = NULL;  // null terminate the argv array
     return argc;
 
 }

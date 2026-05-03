@@ -86,6 +86,11 @@ void setColourToMove(uint32_t* gamestate, uint8_t state) {
 
 }
 
+uint8_t getColourToMove(uint32_t gamestate) {
+
+    return (uint8_t) ((gamestate & GS_colourtoMoveMask) >> 17);
+}
+
 void setHalfmoveClock(uint32_t* gamestate, uint8_t state) {
 
     *gamestate = (*gamestate & ~GS_halfmoveClockMask) | ((state & 0x7FU) << 10);
