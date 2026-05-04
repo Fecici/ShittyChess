@@ -10,12 +10,13 @@ SRC = \
 	src/cli/ui.c \
 	src/core/command.c \
 	src/core/fen.c \
+	src/core/move.c \
 	src/core/history.c \
 	src/core/parse.c \
 	src/util/bitUtils.c \
 	src/util/printUtils.c \
 	src/util/zobrist.c \
-	src/util/search.c
+	src/util/search.c 
 
 OUT = shittychess.exe
 DOUT = DEBUG_shittychess.exe

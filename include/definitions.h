@@ -1,6 +1,7 @@
 #ifndef DEFINITIONS_HEADER
 #define DEFINITIONS_HEADER
 
+// this is a root header. it must not contain any other custom header.
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -126,7 +127,7 @@ typedef enum {
     a8, b8, c8, d8, e8, f8, g8, h8
 
 
-}  Square;  // a1 = 0, h8 = 63. for rank, file: square(rank, file) = 64 - (8 - (rank - 1)) * 8 - (8 - (file - 1)). see "getSqaureIndex" function in cli.c
+}  Square;  // a1 = 0, h8 = 63. for rank, file: square(rank, file) = 64 - (8 - (rank - 1)) * 8 - (8 - (file - 1)). see "getSquareIndex" function in fen.c
 
 
 static const int victim_value[7] = {0, 100, 320, 330, 500, 900, 2000000000}; // 0, P, N, B, R, Q, K

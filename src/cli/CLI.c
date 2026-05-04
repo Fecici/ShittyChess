@@ -19,6 +19,8 @@ Game* initGame(char* fen, Player white, Player black, GameType gt) {
     History history;
 } Game;*/
 
+    initZobrist();
+
     if (game == NULL) {
         game = (Game*) calloc(1, sizeof(Game));
     }

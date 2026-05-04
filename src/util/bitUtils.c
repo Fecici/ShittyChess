@@ -1,5 +1,5 @@
 #include "bitUtils.h"
-
+/*
 uint8_t getBitboardIndex(uint8_t piece) {
 
     return (uint8_t) ((getPieceType(piece) - 1 + 6 * getPiecesColour(piece)));
@@ -57,9 +57,9 @@ uint8_t getCastlingRights(uint32_t gamestate) {
     return (uint8_t) (gamestate & GS_castlingRightsMask);
 }
 
-uint8_t isBlackToMove(uint32_t gamestate) {
+bool isBlackToMove(uint32_t gamestate) {
 
-    return (uint8_t) ((gamestate & GS_colourtoMoveMask));  // since this would return 0 for white's turn, we can just keep this since itll act as a bool anyways
+    return getColourToMove(gamestate) == 1;
 
 }
 
@@ -137,4 +137,4 @@ bool canBlackCastleShort(uint32_t gamestate) {
 
 unsigned int getMoveCount(unsigned int ply) {
     return ply / 2 + 1;
-}
+}*/

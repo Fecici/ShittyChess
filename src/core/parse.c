@@ -97,7 +97,7 @@ int tokenize(char* line, char** argv) {
 
 void getInput(char* input, size_t size) {
 
-    printf(">>> ");
+    printf("\n>>> ");
     if (!fgets(input, (int) size, stdin)) {
         fprintf(stderr, "Error reading command, try again...\n"); 
         return getInput(input, size);

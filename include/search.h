@@ -6,4 +6,8 @@
 
 int perft(Board* b, int depth);
 
+// cmds
+void handlePerft(Board* b);
+void handleChildren(Board* b);
+
 #endif
