@@ -47,9 +47,37 @@ static inline uint8_t getCapturedColour(Move move) {
     return (uint8_t) (getCapturedPieceCode(move) >> 3);
 }
 
+static inline void setSrc(Move* move, uint8_t src) {
+    *move = (*move & ~sourceMask) | (src & sourceMask);
+}
+
+static inline void setDst(Move* move, uint8_t dst) {
+    *move = (*move & ~targetMask) | ((dst << 6) & targetMask);
+}
+
+static inline void setPromotion(Move* move, uint8_t promo) {
+    *move = (*move & ~promoMask) | ((promo << 12) & promoMask);
+}
+
+static inline void setEnPassant(Move* move, uint8_t ep) {
+    *move = (*move & ~enPassantMask) | ((ep << 15) & enPassantMask);
+}
+
+static inline void setCapturedPieceCode(Move* move, uint8_t captured) {
+    *move = (*move & ~capturedPieceMask) | ((captured << 21) & capturedPieceMask);
+}
+
+static inline void setCapturedColour(Move* move, uint8_t colour) {
+    *move |= (colour & 1) << 24;
+}
+
+static inline void setCapturedType(Move* move, uint8_t type) {
+    uint8_t captured = getCapturedPieceCode(*move);
+    captured = (captured & 0x18) | (type & 7);
+    setCapturedPieceCode(move, captured);
+}
+
 static inline uint8_t getCastlingRights(uint32_t gamestate) {
-
-
     return (uint8_t) (gamestate & GS_castlingRightsMask);
 }
 

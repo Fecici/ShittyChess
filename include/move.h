@@ -7,7 +7,7 @@
 void performMove(Board* b, Move move);
 
 void handleMakeMove(Board* b, Move move);
-
+Move getMoveFromHex(char* hexStr);
 bool isValidMove(Board* b, Move move);
 
 

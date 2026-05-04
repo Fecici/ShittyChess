@@ -1,14 +1,5 @@
 #include "parse.h"
 
-Move getMoveFromNotation(Board* b, char* moveStr) {
-
-    // we assume valid notation at this point
-
-    Move m;
-
-    return m;
-}
-
 bool validMoveNotation(char* moveStr) {
 
     char promo;

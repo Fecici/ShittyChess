@@ -147,12 +147,16 @@ int cmd_move(int argc, char** argv) {
 
         else if (strncmp(argv[i], "-m", 2) == 0) {
             char* mvHex = argv[++i];
+            // 
             mv = (Move) strtol(mvHex, NULL, 0);
         }
     }
 
     if (mv != 0) {
         if (visual) {
+
+            // perform visual cmd in move.c
+
             Undo* undo = getUndoFromMove(b, mv);
             performMove(b, mv);
             printBoard(b);
@@ -162,6 +166,7 @@ int cmd_move(int argc, char** argv) {
 
         if (!force) { 
             // idk lol
+            // maybe another move.c wrapper here
             //check legal
             performMove(b, mv);
             return 0;
