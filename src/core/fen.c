@@ -1,45 +1,5 @@
 #include "fen.h"
 
-Piece getPieceFromChar(const char c) {
-
-    switch (c) {
-        case 'P': return WP;
-        case 'N': return WN;
-        case 'B': return WB;
-        case 'R': return WR;
-        case 'K': return WK;
-        case 'Q': return WQ;
-
-        case 'p': return BP;
-        case 'n': return BN;
-        case 'b': return BB;
-        case 'r': return BR;
-        case 'k': return BK;
-        case 'q': return BQ;
-        default: return EMPTY;  // not valid piece
-    }
-}
-
-char getCharFromPiece(Piece piece) {
-
-    switch (piece) {
-        case WP: return 'P';
-        case WN: return 'N';
-        case WB: return 'B';
-        case WR: return 'R';
-        case WK: return 'K';
-        case WQ: return 'Q';
-
-        case BP: return 'p';
-        case BN: return 'n';
-        case BB: return 'b';
-        case BR: return 'r';
-        case BK: return 'k';
-        case BQ: return 'q';
-        default: return ' ';  // not valid piece
-    }
-}
-
 static inline unsigned int getSquareIndex(const int i, const int j) {
 
     // i gives the chunk, j gives the index.
@@ -139,7 +99,7 @@ bool loadFromFen(Board* b, char* fen) {
             uint8_t castleState = getValidCastlingFen(*fen);
             if (!castleState) return false;
 
-            orCastlingRights(&(b->gameState), castleState);
+            orCastlingRights(&(b->gamestate), castleState);
             fen++;
         }
     }
@@ -156,7 +116,7 @@ bool loadFromFen(Board* b, char* fen) {
 
         uint8_t epSquare = convertSquareNotationToEP(file, rank);
         if (!epSquare) return false;
-        setEnPassantSquare(&(b->gameState), epSquare);
+        setEnPassantSquare(&(b->gamestate), epSquare);
         fen += 2;
     }
     else fen++;
@@ -187,7 +147,7 @@ bool loadFromFen(Board* b, char* fen) {
             fen++;
         }
     }
-    setHalfmoveClock(&(b->gameState), halfmove);
+    setHalfmoveClock(&(b->gamestate), halfmove);
 
     char* fullmoves = fen;  // from here until \0
     unsigned int fenPly = convertFullmoveStringToPly(fullmoves, colourToMove);
@@ -236,25 +196,25 @@ char* convertToFen(Board* b) {
 
     fen[fenIndex++] = ' ';
 
-    uint8_t colourToMove = getColourToMove(b->gameState);
+    uint8_t colourToMove = getColourToMove(b->gamestate);
     fen[fenIndex++] = colourToMove ? 'b' : 'w';
 
     fen[fenIndex++] = ' ';
 
-    uint8_t castlingRights = getCastlingRights(b->gameState);
+    uint8_t castlingRights = getCastlingRights(b->gamestate);
     if (!castlingRights) {
         fen[fenIndex++] = '-';
     }
     else {
         if (castlingRights & whiteShortCastleMask) fen[fenIndex++] = 'K';
-        if (castlingRights & whiteLongCastleMask) fen[fenIndex++] = 'Q';
+        if (castlingRights & whiteLongCastleMask) fen[fenIndex++]  = 'Q';
         if (castlingRights & blackShortCastleMask) fen[fenIndex++] = 'k';
-        if (castlingRights & blackLongCastleMask) fen[fenIndex++] = 'q';
+        if (castlingRights & blackLongCastleMask) fen[fenIndex++]  = 'q';
     }
 
     fen[fenIndex++] = ' ';
 
-    uint8_t epSquare = getEnPassantSquare(b->gameState);
+    uint8_t epSquare = getEnPassantSquare(b->gamestate);
     if (!epSquare) {
         fen[fenIndex++] = '-';
     }
@@ -268,7 +228,7 @@ char* convertToFen(Board* b) {
     }
     fen[fenIndex] = '\0';  // null terminate the fen string
 
-    uint8_t halfmoveClock = getHalfmoveClock(b->gameState);
+    uint8_t halfmoveClock = getHalfmoveClock(b->gamestate);
     char halfmoveStr[4];
     snprintf(halfmoveStr, sizeof(halfmoveStr), "%d", halfmoveClock);
     strcat(fen, " ");

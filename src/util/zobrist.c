@@ -124,17 +124,17 @@ uint64_t generateZobristHash(Board* b) {
     }
 
     // castling rights
-    uint8_t castlingRights = getCastlingRights(b->gameState);
+    uint8_t castlingRights = getCastlingRights(b->gamestate);
     hash ^= zobristCastle[castlingRights];
 
     // en passant
-    uint8_t epSquare = getEnPassantSquare(b->gameState);
+    uint8_t epSquare = getEnPassantSquare(b->gamestate);
     if (epSquare) {
         hash ^= zobristEnPassant[epSquare % 8];  // only the file matters for en passant
     }
 
     // colour to move
-    if (isBlackToMove(b->gameState)) {
+    if (isBlackToMove(b->gamestate)) {
         hash ^= zobristBlackToMove;
     }
 

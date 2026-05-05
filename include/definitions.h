@@ -16,11 +16,17 @@
 // promo needs 3 bits instead of 2, since the third will represent whether or not a promo actually happened
 //                                        v----- double pawn push (need more bits? no we have what we need)
 // Move specification:      R R R R | R K D C | C C C E | E E E E | E P P P | T T T T | T T S S | S S S S
+//                                      ^
 //                         reserved castled capturedPiece enpassant promo     target        source
 typedef uint32_t Move;
+typedef uint32_t Gamestate;
+
+static const Move NULL_MOVE = 0;
+static const Gamestate NULL_GAMESTATE = 0;
 
 // Move masks
 static const uint32_t castleMask        = 0x04000000;
+static const uint32_t doublePushMask    = 0x02000000;
 static const uint32_t capturedPieceMask = 0x01E00000;
 static const uint32_t enPassantMask     = 0x001F8000;
 static const uint32_t promoMask         = 0x00007000;
@@ -37,6 +43,12 @@ static const uint8_t whiteShortCastleMask = 0x2;
 static const uint8_t blackLongCastleMask  = 0x4;
 static const uint8_t blackShortCastleMask = 0x8;
 
+// 01xx, set the on bit
+static const uint8_t promoKnight = 0x4;
+static const uint8_t promoBishop = 0x5;
+static const uint8_t promoRook   = 0x6;
+static const uint8_t promoQueen  = 0x7;
+
 // stuff here stores data to make undoing trivial
 typedef struct {
     uint64_t zobrist;
@@ -50,12 +62,13 @@ typedef struct {
 // these update in parallel. undo holds metadata for easy undo of boards
 typedef struct {
 
-    Move moveStack[MAX_DEPTH];
-    Undo undoStack[MAX_DEPTH];
-    uint8_t ply;  // init to 0
-
-} Gamestack;
-
+    uint64_t hashHistory[MAX_PLY];
+    Move moveHistory[MAX_PLY];
+    Undo undoHistory[MAX_PLY];
+    Gamestate gamestateHistory[MAX_PLY];
+    uint8_t ply;
+    
+} History;
 
 typedef enum {
     EMPTY,      // no piece
@@ -73,6 +86,16 @@ typedef enum {
     BK,
 } Piece;
 
+typedef enum {
+    EMPTY_TYPE,
+    PAWN,
+    KNIGHT,
+    BISHOP,
+    ROOK,
+    QUEEN,
+    KING
+} PieceType;
+
 
 // hold bit boards for the game. will also store game meta data like castling rights, enpassant, etc.
 typedef struct {
@@ -81,7 +104,7 @@ typedef struct {
     uint64_t bitboards[12];   // stores all bitboards, indexed by iCT for Colour, Type = CT
     uint64_t boardUnions[3];  // eg all white, all black, all pieces - "blockers"
     uint64_t zobrist;  // updated incrementally each move or undo via xor
-    Gamestack* gamestack;   // idk if i need this
+    History* history;   // idk if i need this
 
     // gameState format:
     // _ _ _ _ _ _ _ _ | _ _ _ _ _ _ T H | H H H H H H E E | E E E E C C C C 
@@ -91,7 +114,7 @@ typedef struct {
 
     // castling rights: _ _ _ _ | black short, black long, white short, white long
 
-    uint32_t gameState;
+    Gamestate gamestate;
     unsigned int ply;  // 0 initially. >> 1 to get full move clock. 
 } Board;
 

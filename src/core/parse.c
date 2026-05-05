@@ -1,45 +1,45 @@
 #include "parse.h"
 
-bool validMoveNotation(char* moveStr) {
+// bool validMoveNotation(char* moveStr) {
 
-    char promo;
+//     char promo;
 
-    if (strncmp(moveStr, "O-O-O", 5) == 0) {
-        return true;
-    }
+//     if (strncmp(moveStr, "O-O-O", 5) == 0) {
+//         return true;
+//     }
 
-    if (strncmp(moveStr, "O-O", 3) == 0) {
-        return true;
-    }
+//     if (strncmp(moveStr, "O-O", 3) == 0) {
+//         return true;
+//     }
 
-    if (strnlen(moveStr, 4) != 4) {
-        if (strnlen(moveStr, 5) == 5) {
-            goto handlePromotion;
-        }
-        return false;
-    }
+//     if (strnlen(moveStr, 4) != 4) {
+//         if (strnlen(moveStr, 5) == 5) {
+//             goto handlePromotion;
+//         }
+//         return false;
+//     }
 
-    normalAlgebraMoveStrHandle:
-    char srcFile, srcRank, dstFile, dstRank;
-    srcFile = moveStr[0];
-    dstFile = moveStr[2];
-    srcRank = moveStr[1];
-    dstRank = moveStr[3];
+//     normalAlgebraMoveStrHandle:
+//     char srcFile, srcRank, dstFile, dstRank;
+//     srcFile = moveStr[0];
+//     dstFile = moveStr[2];
+//     srcRank = moveStr[1];
+//     dstRank = moveStr[3];
 
-    if (!(srcFile >= 'a' && srcFile <= 'h' && dstFile >= 'a' && dstFile <= 'h')) { return false; }
-    if (!(srcRank >= '1' && srcRank <= '8' && dstRank >= '1' && dstRank <= '8')) { return false; }
+//     if (!(srcFile >= 'a' && srcFile <= 'h' && dstFile >= 'a' && dstFile <= 'h')) { return false; }
+//     if (!(srcRank >= '1' && srcRank <= '8' && dstRank >= '1' && dstRank <= '8')) { return false; }
 
-    return true;  // we will not worry about the fact that the rank must be 1 or 8 depending on the promo, but we will just let the application deal with this
+//     return true;  // we will not worry about the fact that the rank must be 1 or 8 depending on the promo, but we will just let the application deal with this
 
-    handlePromotion:
-    promo = moveStr[4];
-    char tester = promo ^ 'q' ^ 'b' ^ 'r' ^ 'n';
-    if (tester == 0 && promo != 0) {
-        goto normalAlgebraMoveStrHandle;
-    }
+//     handlePromotion:
+//     promo = moveStr[4];
+//     char tester = promo ^ 'q' ^ 'b' ^ 'r' ^ 'n';
+//     if (tester == 0 && promo != 0) {
+//         goto normalAlgebraMoveStrHandle;
+//     }
 
-    return false;
-}
+//     return false;
+// }
 
 // this needs to turn all whitespace into a '\0' and count the args. this also mutates argv
 int tokenize(char* line, char** argv) {

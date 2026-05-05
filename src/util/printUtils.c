@@ -51,11 +51,11 @@ char* getPieceNameFromIndex(uint8_t index) {
 void printGameState(Board* b, bool makeSquare) {
 
     printf("Current game state - move %u\n", getMoveCount(b->ply));
-    printf("gameState hex: %x\n", b->gameState);
+    printf("gameState hex: %x\n", (uint32_t) b->gamestate);
     printf("gameState binary: ");
     for (int i = 31; i >= 0; i--) {
         uint32_t k = ((uint32_t)1 << i);
-        if (k & b->gameState) printf("1");
+        if (k & (uint32_t) b->gamestate) printf("1");
         else                  printf("0");
     }
     printf("\n");

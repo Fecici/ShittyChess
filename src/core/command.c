@@ -86,7 +86,7 @@ int cmd_undo(int argc, char** argv) {
     bool force = false;
 
     Board* b = game->board;
-    Gamestack* stack = b->gamestack;
+    History* stack = b->gamestack;
     Undo* undo = &(stack->undoStack[stack->ply]);
 
     if (argc <= 1) {
@@ -130,7 +130,7 @@ int cmd_move(int argc, char** argv) {
 
     bool force = false;
     bool visual = false;
-    Move mv = 0;
+    Move mv = NULL_MOVE;
 
     if (argc <= 1) {
         return 1;
@@ -148,17 +148,23 @@ int cmd_move(int argc, char** argv) {
         else if (strncmp(argv[i], "-m", 2) == 0) {
             char* mvHex = argv[++i];
             // 
-            mv = (Move) strtol(mvHex, NULL, 0);
+            mv = getMoveFromHex(mvHex);
+            if (mv == NULL_MOVE) {
+                fprintf(stderr, "Error: Invalid move hex: %s\n", mvHex);
+                return 1;
+            }
         }
     }
 
-    if (mv != 0) {
+    // move is given via -m
+    if (mv != NULL_MOVE) {
         if (visual) {
 
             // perform visual cmd in move.c
 
             Undo* undo = getUndoFromMove(b, mv);
             performMove(b, mv);
+            //printf("Visual move: %s\n", mvHex);
             printBoard(b);
             performUndo(b, undo);
             return 0;
@@ -173,11 +179,15 @@ int cmd_move(int argc, char** argv) {
         }
     }
 
+    // move not given via -m
     // "move e2e4 -f -v -etc"
     char* strMove = argv[1];
-    if (!validMoveNotation(strMove)) return 1;
+    if (!validMoveNotation(strMove)) {
+        fprintf(stderr, "Error: Invalid move notation: %s\n", strMove);
+        return 1;
+    };
 
-    mv = getMoveFromNotation(b, strMove);
+    mv = getMoveFromNotation(strMove);  // set move
     if (!force) {
         // check legal
         performMove(b, mv);

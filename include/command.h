@@ -6,6 +6,11 @@
 #define MAX_CMD_NAME 32
 
 #include "definitions.h"
+#include "move.h"
+#include "history.h"
+#include "fen.h"
+#include "parse.h"
+#include "printUtils.h"
 
 typedef struct Game Game;  // incomplete type, because we only pass around pointers in command.c
 

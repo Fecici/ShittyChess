@@ -41,8 +41,7 @@ void handleStalemate(Board* b);
 void handleCheckmate(Board* b);
 
 void cliMainLoop(Game* game, void (*performCommand)(Board* b));
-Move getmove(Board* b, Player player);
-bool isValidMove(Board* b, Move move); 
+Move getMove(Board* b, Player player);  // ignore this, use the cli cmd instead get_move
 void handleIllegal();
 
 // one of these is chosen for the performCommand pointer
