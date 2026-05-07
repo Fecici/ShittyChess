@@ -47,12 +47,28 @@ char* getPieceNameFromIndex(uint8_t index) {
     return pieceNames[index];
 }
 
+void printHistory(History* h) {
+
+    printf("Move history (most recent move last):\n");
+    for (unsigned int i = 0; i < h->ply; i++) {
+        Move move = h->moveHistory[i];
+        Square src = getSrc(move);
+        Square dst = getDst(move);
+        printf("%u. %c%d -> %c%d\n", getMoveCount(i), 'a' + src % 8, 8 - src / 8, 'a' + dst % 8, 8 - dst / 8);
+    }
+}
+
 
 void printGameState(Board* b, bool makeSquare) {
 
     printf("Current game state - move %u\n", getMoveCount(b->ply));
     printf("gameState hex: %x\n", (uint32_t) b->gamestate);
     printf("gameState binary: ");
+    printf("Colour to move: %s\n", isBlackToMove(b->gamestate) ? "Black" : "White");
+    printf("Halfmove clock: %u\n", getHalfmoveClock(b->gamestate));
+    printf("En passant square: %u\n", getEnPassantSquare(b->gamestate));
+    printf("Castling rights: %u\n", getCastlingRights(b->gamestate));
+    printf("Evaluation: %d\n", evaluateBoard(b));
     for (int i = 31; i >= 0; i--) {
         uint32_t k = ((uint32_t)1 << i);
         if (k & (uint32_t) b->gamestate) printf("1");
@@ -66,7 +82,6 @@ void printGameState(Board* b, bool makeSquare) {
 }
 
 void printBoard(Board* b) {
-// UNTESTED: need to do this
     Piece* arr = b->pieces;
     
     printf("---+---+---+---+---+---+---+---+---+\n");
@@ -164,7 +179,9 @@ void printBitBoard(uint64_t bitboard, char* name, bool makeSquare) {
     return;
 }
 
-
+void printEval(Board* b) {
+    int eval = evaluateBoard(b);
+    printf("Evaluation: %d\n", eval);
 
 void printZobrist(Board* b) {
 

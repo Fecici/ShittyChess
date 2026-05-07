@@ -4,6 +4,7 @@
 #include "definitions.h"
 #include "bitUtils.h"
 #include "history.h"
+#include "eval.h"
 
 void printGameState(Board* b, bool makeSquare);
 void printBoard(Board* b);

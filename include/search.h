@@ -3,6 +3,8 @@
 
 
 #include "bitUtils.h"
+#include "definitions.h"
+#include "moves.h"
 
 int perft(Board* b, int depth);
 

@@ -16,7 +16,9 @@ SRC = \
 	src/util/bitUtils.c \
 	src/util/printUtils.c \
 	src/util/zobrist.c \
-	src/util/search.c 
+	src/engine/search.c \
+	src/engine/eval.c \
+	src/engine/engine.c
 
 OUT = shittychess.exe
 DOUT = DEBUG_shittychess.exe

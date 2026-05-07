@@ -4,7 +4,7 @@
 #include "definitions.h"
 #include "bitUtils.h"
 
-void performMove(Board* b, Move move);
+void makeMove(Board* b, Move move);
 
 void handleMakeMove(Board* b, Move move);
 Move getMoveFromHex(char* hexStr);

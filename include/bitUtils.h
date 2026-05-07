@@ -47,7 +47,7 @@ static inline Piece getPieceFromChar(char c) {
     }
 }
 
-static inline uint8_t getPiecesColour(uint8_t piece) {
+static inline uint8_t getPiecesColour(Piece piece) {
     return piece >> 3;
 };
 
@@ -61,6 +61,10 @@ static inline uint8_t getDst(Move move) {
 
 static inline uint8_t getEnPassant(Move move) {
     return (uint8_t) ((move & enPassantMask) >> 15);
+};
+
+static inline uint8_t getDoublePush(Move move) {
+    return (uint8_t) ((move & doublePushMask) >> 25);
 };
 
 static inline bool isCastled(Move move) {
@@ -100,6 +104,10 @@ static inline void setPromotion(Move* move, uint8_t promo) {
 
 static inline void setEnPassant(Move* move, uint8_t ep) {
     *move = (*move & ~enPassantMask) | ((ep << 15) & enPassantMask);
+}
+
+static inline void setDoublePush(Move* move, uint8_t dp) {
+    *move = (*move & ~doublePushMask) | ((dp << 25) & doublePushMask);
 }
 
 static inline void setCapturedPiece(Move* move, Piece captured) {
@@ -183,6 +191,10 @@ static inline void orCastlingRights(Gamestate* gamestate, uint8_t field) {
     *gamestate |= (field & 0xf);
 }
 
+static inline void removeCastlingRights(Gamestate* gamestate, uint8_t field) {
+    *gamestate &= ~(field & 0xf);
+}
+
 static inline bool canWhiteCastleLong(Gamestate gamestate) {
 
     return gamestate & whiteLongCastleMask;
@@ -211,7 +223,7 @@ static inline unsigned int getMoveCount(unsigned int ply) {
     return ply / 2 + 1;
 }
 
-static inline uint8_t getBitboardIndex(uint8_t piece) {
+static inline uint8_t getBitboardIndex(Piece piece) {
 
     return (uint8_t) ((getPieceType(piece) - 1 + 6 * getPiecesColour(piece)));
 

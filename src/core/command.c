@@ -90,10 +90,11 @@ int cmd_undo(int argc, char** argv) {
     Undo* undo = &(stack->undoStack[stack->ply]);
 
     if (argc <= 1) {
-        ///TODO: 
-        //check that we can undo - would entail checking stack bounds pretty much
-        performUndo(b, undo);
-
+        
+        // check that we can undo - would entail checking stack bounds pretty much
+        if (handlePerformUndo(b, undo)) {
+            return 1;
+        }
         return 0;
     }
 
@@ -108,16 +109,16 @@ int cmd_undo(int argc, char** argv) {
     }
 
     if (!force) {
-        ///TODO:
         // check if we can undo
-        performUndo(b, undo);
-
+        if (handlePerformUndo(b, undo)) {
+            return 1;
+        }
         return 0;
     }
 
     else {
         // purely just to see what the effect of this undo struct would have on this board struct
-        performUndo(b, undo);
+        PerformUndo(b, undo);  // may or may not crash
     }
 
     return 0;
@@ -163,7 +164,8 @@ int cmd_move(int argc, char** argv) {
             // perform visual cmd in move.c
 
             Undo* undo = getUndoFromMove(b, mv);
-            performMove(b, mv);
+            pushUndoToStack(b, undo);
+            makeMove(b, mv);
             //printf("Visual move: %s\n", mvHex);
             printBoard(b);
             performUndo(b, undo);
@@ -174,7 +176,7 @@ int cmd_move(int argc, char** argv) {
             // idk lol
             // maybe another move.c wrapper here
             //check legal
-            performMove(b, mv);
+            handleMakeMove(b, mv);
             return 0;
         }
     }
@@ -189,21 +191,22 @@ int cmd_move(int argc, char** argv) {
 
     mv = getMoveFromNotation(strMove);  // set move
     if (!force) {
-        // check legal
-        performMove(b, mv);
+        // checks legal
+        handleMakeMove(b, mv);
         return 0;
     }
 
-    if (visual) {
+    if (visual) {  // explicitly do not check legal
         Undo* undo = getUndoFromMove(b, mv);
-        performMove(b, mv);
+        pushUndoToStack(b, undo);
+        makeMove(b, mv);
         printBoard(b);
         performUndo(b, undo);
         return 0;
     }
 
     else {
-        performMove(b, mv);
+        makeMove(b, mv);
     }
 
     return 0;
@@ -226,6 +229,7 @@ int cmd_children(int argc, char** argv) {
 
 int cmd_quit(int argc, char** argv) { 
     ///TODO: free heap
+
     (void) argc; 
     (void) argv; 
     handleQuit(); 
@@ -233,10 +237,20 @@ int cmd_quit(int argc, char** argv) {
 }
 
 int cmd_resign(int argc, char** argv) {
-    (void) argc;
-    (void) argv;
+    
+    // -e print eval
+    for (int i = 1; i < argc; i++) {
+        if (strncmp(argv[i], "-e", 2) == 0) {
+            int ev = evaluateBoard(game->board);
+            printf("Evaluation: %d\n", ev);
+        }
+    }
+
+    handleResign(game->board);
+
     return 0;
 }
+
 int cmd_help(int argc, char** argv) {
     (void) argc;
     (void) argv;
@@ -284,17 +298,23 @@ int cmd_moves(int argc, char** argv) {
 int cmd_hist(int argc, char** argv) {
     (void) argc;
     (void) argv;
+
+    printHistory(game->history);
     return 0;
 }
 int cmd_eval(int argc, char** argv) {
     (void) argc;
     (void) argv;
+    printEval(game->board);
     return 0;
 }
 
 int cmd_hash(int argc, char** argv) {
     (void) argc;
     (void) argv;
+
+    printZobrist(game->board);
+    
     return 0;
 }
 
@@ -317,12 +337,6 @@ int cmd_checkers(int argc, char** argv) {
 
 int cmd_board(int argc, char** argv) {
     // for now
-    ///TODO: there are some more specs that i want implemented later, found in the txt
-    // -b for bitboard, optional -p to specify piece, capitalizd for white under normal fen notation, 
-    // -bx for bitboard in hex -g gamestate, -gx gamestate hex. non x is printed in binary by default
-    // the bitboards with unspecified pieces otherwise are labeled and all are printed
-    // if -s passed after -b in args, print square bitboard
-    // -z is zobrist (already hex). print immediately and exit
 
     if (argc <= 1) {
         printBoard(game->board);

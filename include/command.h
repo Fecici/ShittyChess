@@ -11,6 +11,9 @@
 #include "fen.h"
 #include "parse.h"
 #include "printUtils.h"
+#include "eval.h"
+#include "bitUtils.h"
+#include "engine.h"
 
 typedef struct Game Game;  // incomplete type, because we only pass around pointers in command.c
 
