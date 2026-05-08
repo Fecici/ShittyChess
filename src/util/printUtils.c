@@ -182,6 +182,7 @@ void printBitBoard(uint64_t bitboard, char* name, bool makeSquare) {
 void printEval(Board* b) {
     int eval = evaluateBoard(b);
     printf("Evaluation: %d\n", eval);
+}
 
 void printZobrist(Board* b) {
 

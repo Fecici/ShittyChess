@@ -42,7 +42,6 @@ Game* initGame(char* fen, Player white, Player black, GameType gt) {
     }
 
     unsigned int ply = b->ply;
-    game->ply = ply;
     game->moves = (ply >> 1) + 1;
 
     game->whiteTime = -1;

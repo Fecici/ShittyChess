@@ -3,12 +3,14 @@
 
 #include "definitions.h"
 #include "bitUtils.h"
+#include "zobrist.h"
 
 void makeMove(Board* b, Move move);
 
-void handleMakeMove(Board* b, Move move);
+int handleMakeMove(Board* b, Move move);
 Move getMoveFromHex(char* hexStr);
 bool isLegalMove(Board* b, Move move);
+Piece getPieceOnSquare(Board* b, Square sq);
 
 Move getMoveFromAlgebra(Board* b, char* moveStr);
 Move getMoveFromNotation(Board* b, char* moveStr);

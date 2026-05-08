@@ -91,7 +91,7 @@ bool loadFromFen(Board* b, char* fen) {
     uint8_t colourToMove = 0;
     if (*fen == 'b') colourToMove = 1;
     else if (*fen != 'w') return false;
-    setColourToMove(&(b->gameState), colourToMove);
+    setColourToMove(&(b->gamestate), colourToMove);
     fen += 2;
     if (*fen != '-') {
         

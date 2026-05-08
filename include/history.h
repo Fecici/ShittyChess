@@ -11,7 +11,7 @@ void performUndo(Board* b, Undo* undo);
 bool pushUndoToStack(Board* b, Undo* undo);
 
 // commands:
-void handleUndo(Board* b, Undo* undo);
+int handleUndo(Board* b, Undo* undo);
 void handlePerft(Board* b);
 void handleChildren(Board* b);
 void handleResign(Board* b);

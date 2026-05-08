@@ -26,11 +26,9 @@ typedef struct Game {
     Board* board;
     Player white, black;
     unsigned int moves;  // 2ply = 1 move
-    unsigned int ply;
     /// TODO: time control eventually
     int whiteTime, blackTime;
     uint8_t gameResult;  // format to be defined, but basically its a flag that describes how the game ended
-    History history;
 } Game;
 
 

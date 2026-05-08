@@ -86,13 +86,13 @@ int cmd_undo(int argc, char** argv) {
     bool force = false;
 
     Board* b = game->board;
-    History* stack = b->gamestack;
-    Undo* undo = &(stack->undoStack[stack->ply]);
+    History* stack = b->history;
+    Undo* undo = &(stack->undoHistory[stack->ply]);
 
     if (argc <= 1) {
         
         // check that we can undo - would entail checking stack bounds pretty much
-        if (handlePerformUndo(b, undo)) {
+        if (handleUndo(b, undo)) {
             return 1;
         }
         return 0;
@@ -110,7 +110,7 @@ int cmd_undo(int argc, char** argv) {
 
     if (!force) {
         // check if we can undo
-        if (handlePerformUndo(b, undo)) {
+        if (handleUndo(b, undo)) {
             return 1;
         }
         return 0;
@@ -118,7 +118,7 @@ int cmd_undo(int argc, char** argv) {
 
     else {
         // purely just to see what the effect of this undo struct would have on this board struct
-        PerformUndo(b, undo);  // may or may not crash
+        performUndo(b, undo);  // may or may not crash
     }
 
     return 0;
@@ -189,7 +189,7 @@ int cmd_move(int argc, char** argv) {
         return 1;
     };
 
-    mv = getMoveFromNotation(strMove);  // set move
+    mv = getMoveFromNotation(b, strMove);  // set move
     if (!force) {
         // checks legal
         handleMakeMove(b, mv);
@@ -299,7 +299,7 @@ int cmd_hist(int argc, char** argv) {
     (void) argc;
     (void) argv;
 
-    printHistory(game->history);
+    printHistory(game->board->history);
     return 0;
 }
 int cmd_eval(int argc, char** argv) {

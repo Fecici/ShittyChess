@@ -39,30 +39,37 @@ void performUndo(Board* b, Undo* undo) {
     }
 
     // handle castling undo
-    uint64_t t = 1;
     if (isCastled(move)) {
+        uint64_t t = 1;
+
+        // setting the zobrists here is no longer necessary if we are just reloading it from the stack
         if (dst == g1) {  // white kingside
             b->bitboards[getBitboardIndex(WR)] ^= (t << h1) | (t << f1);
             setCastlingRights(&b->gamestate, getCastlingRights(b->gamestate) | whiteLongCastleMask);  // restore white kingside castling right
-            b->zobrist ^= getZobristHash(WR, h1) ^ getZobristHash(WR, f1);  // move rook from h1 to f1
-            b->zobrist ^= getZobristHash(WK, e1) ^ getZobristHash(WK, g1);  // move king from e1 to g1  
+            // b->zobrist ^= getZobristHash(WR, h1) ^ getZobristHash(WR, f1);  // move rook from h1 to f1
+            // b->zobrist ^= getZobristHash(WK, e1) ^ getZobristHash(WK, g1);  // move king from e1 to g1  
+            // b->zobrist ^= getZobristCastleHash(whiteLongCastleMask);  // update castling hash for white kingside
+
         } else if (dst == c1) {  // white queenside
             b->bitboards[getBitboardIndex(WR)] ^= (t << a1) | (t << d1);
             setCastlingRights(&b->gamestate, getCastlingRights(b->gamestate) | whiteShortCastleMask);  // restore white queenside castling right
-            b->zobrist ^= getZobristHash(WR, a1) ^ getZobristHash(WR, d1);  // move rook from a1 to d1
-            b->zobrist ^= getZobristHash(WK, e1) ^ getZobristHash(WK, c1);  // move king from e1 to c1
+            // b->zobrist ^= getZobristHash(WR, a1) ^ getZobristHash(WR, d1);  // move rook from a1 to d1
+            // b->zobrist ^= getZobristHash(WK, e1) ^ getZobristHash(WK, c1);  // move king from e1 to c1
+            // b->zobrist ^= getZobristCastleHash(whiteShortCastleMask);  // update castling hash for white queenside
 
         } else if (dst == g8) {  // black kingside
             b->bitboards[getBitboardIndex(BR)] ^= (t << h8) | (t << f8);
             setCastlingRights(&b->gamestate, getCastlingRights(b->gamestate) | blackLongCastleMask);  // restore black kingside castling right
-            b->zobrist ^= getZobristHash(BR, h8) ^ getZobristHash(BR, f8);  // move rook from h8 to f8
-            b->zobrist ^= getZobristHash(BK, e8) ^ getZobristHash(BK, g8);  // move king from e8 to g8
+            // b->zobrist ^= getZobristHash(BR, h8) ^ getZobristHash(BR, f8);  // move rook from h8 to f8
+            // b->zobrist ^= getZobristHash(BK, e8) ^ getZobristHash(BK, g8);  // move king from e8 to g8
+            // b->zobrist ^= getZobristCastleHash(blackLongCastleMask);  // update castling hash for black kingside
 
         } else if (dst == c8) {  // black queenside
             b->bitboards[getBitboardIndex(BR)] ^= (t << a8) | (t << d8);
             setCastlingRights(&b->gamestate, getCastlingRights(b->gamestate) | blackShortCastleMask);  // restore black queenside castling right
-            b->zobrist ^= getZobristHash(BR, a8) ^ getZobristHash(BR, d8);  // move rook from a8 to d8
-            b->zobrist ^= getZobristHash(BK, e8) ^ getZobristHash(BK, c8);  // move king from e8 to c8
+            // b->zobrist ^= getZobristHash(BR, a8) ^ getZobristHash(BR, d8);  // move rook from a8 to d8
+            // b->zobrist ^= getZobristHash(BK, e8) ^ getZobristHash(BK, c8);  // move king from e8 to c8
+            // b->zobrist ^= getZobristCastleHash(blackShortCastleMask);  // update castling hash for black queenside
         }
     }
 

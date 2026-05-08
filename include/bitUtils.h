@@ -9,41 +9,42 @@ static inline PieceType getPieceType(Piece piece) {
 }
 
 static inline char getCharFromPiece(Piece piece) {
-    if (piece == EMPTY) return ' ';
-    
-    switch (type) {
+
+    switch (piece) {
         case WP: return 'P';
         case WN: return 'N';
         case WB: return 'B';
         case WR: return 'R';
-        case WQ: return 'Q';
         case WK: return 'K';
+        case WQ: return 'Q';
+
         case BP: return 'p';
         case BN: return 'n';
         case BB: return 'b';
         case BR: return 'r';
-        case BQ: return 'q';
         case BK: return 'k';
-        default: return ' ';
+        case BQ: return 'q';
+        default: return ' ';  // not valid piece
     }
-
 }
 
-static inline Piece getPieceFromChar(char c) {
+static inline Piece getPieceFromChar(const char c) {
+
     switch (c) {
         case 'P': return WP;
         case 'N': return WN;
         case 'B': return WB;
         case 'R': return WR;
-        case 'Q': return WQ;
         case 'K': return WK;
+        case 'Q': return WQ;
+
         case 'p': return BP;
         case 'n': return BN;
         case 'b': return BB;
         case 'r': return BR;
-        case 'q': return BQ;
         case 'k': return BK;
-        default: return EMPTY;  // empty or invalid
+        case 'q': return BQ;
+        default: return EMPTY;  // not valid piece
     }
 }
 

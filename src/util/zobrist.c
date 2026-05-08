@@ -109,6 +109,22 @@ void initZobrist() {
 
 }
 
+uint64_t getZobristHash(Piece piece, Square square) {
+    return zobristTable[getBitboardIndex(piece)][square];
+}
+
+uint64_t getZobristCastleHash(uint8_t castlingRights) {
+    return zobristCastle[castlingRights];
+}
+
+uint64_t getZobristEnPassantHash(Square epFile) {
+    return zobristEnPassant[epFile];
+}
+
+uint64_t getZobristBlackToMoveHash() {
+    return zobristBlackToMove;
+}
+
 uint64_t generateZobristHash(Board* b) {
     
     uint64_t hash = 0;
