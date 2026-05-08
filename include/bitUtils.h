@@ -230,4 +230,13 @@ static inline uint8_t getBitboardIndex(Piece piece) {
 
 };
 
+static inline uint64_t getBitboardForPiece(Board* b, Piece piece) {
+    return b->bitboards[getBitboardIndex(piece)];
+}
+
+static inline uint64_t getSquareBitboard(Square s) {
+    
+    return squareBitboards[s];
+}
+
 #endif

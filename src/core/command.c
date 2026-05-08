@@ -93,8 +93,10 @@ int cmd_undo(int argc, char** argv) {
         
         // check that we can undo - would entail checking stack bounds pretty much
         if (handleUndo(b, undo)) {
+            fprintf(stderr, "Failed to undo.");
             return 1;
         }
+        printBoard(b);
         return 0;
     }
 
@@ -111,16 +113,19 @@ int cmd_undo(int argc, char** argv) {
     if (!force) {
         // check if we can undo
         if (handleUndo(b, undo)) {
+            fprintf(stderr, "Failed to undo.");
             return 1;
         }
+        printBoard(b);
         return 0;
     }
 
     else {
         // purely just to see what the effect of this undo struct would have on this board struct
-        performUndo(b, undo);  // may or may not crash
+        performUndo(b, undo);  // may or may not crash  // it crashed
     }
 
+    printBoard(b);
     return 0;
 
 }
@@ -177,6 +182,7 @@ int cmd_move(int argc, char** argv) {
             // maybe another move.c wrapper here
             //check legal
             handleMakeMove(b, mv);
+            printBoard(b);
             return 0;
         }
     }
@@ -193,6 +199,7 @@ int cmd_move(int argc, char** argv) {
     if (!force) {
         // checks legal
         handleMakeMove(b, mv);
+        printBoard(b);
         return 0;
     }
 
@@ -209,6 +216,7 @@ int cmd_move(int argc, char** argv) {
         makeMove(b, mv);
     }
 
+    printBoard(b);
     return 0;
 }
 

@@ -44,6 +44,9 @@ Game* initGame(char* fen, Player white, Player black, GameType gt) {
     unsigned int ply = b->ply;
     game->moves = (ply >> 1) + 1;
 
+    History* h = calloc(1, sizeof(History));
+    b->history = h;
+
     game->whiteTime = -1;
     game->blackTime = -1;
 
@@ -99,6 +102,8 @@ void cliMainLoop(Game* g, void (*performCommand)(Board* b)) {
     char* argv[MAX_ARG];
 
     bool terminationDebug = false;
+
+    printBoard(game->board);
 
     while (true) {
 

@@ -34,6 +34,9 @@ void performUndo(Board* b, Undo* undo) {
     // toggle bits xor
     b->bitboards[getBitboardIndex(srcPiece)] ^= srcMask;  // add
     b->bitboards[getBitboardIndex(srcPiece)] ^= dstMask;  // remove
+    b->pieces[src] = srcPiece;  // update piece array
+    b->pieces[dst] = capturedPiece;
+
     if (capturedPiece != EMPTY) {
         b->bitboards[getBitboardIndex(capturedPiece)] ^= dstMask;  // add captured piece back to destination square
     }
