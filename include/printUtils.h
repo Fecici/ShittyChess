@@ -21,7 +21,7 @@ char* getPieceNameFromPiece(Piece piece);
 // Command stuff
 void printHelp();
 void printLegalMoves(Board* b);
-void printHistory(History* h);
+void printHistory(Undo64* undoStack, unsigned int ply);
 void printEval(Board* b);  // eval will be written somewhere else, this is a printing wrapper
 void printAttacksFromSquare(Board* b, Square sq);
 void printPinsBitboards(Board* b);

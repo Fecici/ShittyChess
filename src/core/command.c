@@ -8,6 +8,7 @@ CommandAbstract cmds[] = {
     {.name = "perft", .cmd = cmd_perft},
     {.name = "children", .cmd = cmd_children},
     {.name = "quit", .cmd = cmd_quit},
+    {.name = "exit", .cmd = cmd_quit},
     {.name = "resign", .cmd = cmd_resign},
     {.name = "fen", .cmd = cmd_fen},
     {.name = "legal-moves", .cmd = cmd_moves},
@@ -86,9 +87,15 @@ int cmd_undo(int argc, char** argv) {
     bool force = false;
 
     Board* b = game->board;
-    History* stack = b->history;
-    Undo* undo = &(stack->undoHistory[stack->ply]);
+    Undo64* stack = b->undoStack;
+    unsigned int ply = --b->ply;
 
+    if (ply < 0) {
+        fprintf(stderr, "Error: No moves to undo\n");
+        return 1;
+    }
+
+    Undo64 undo = stack[ply];
     if (argc <= 1) {
         
         // check that we can undo - would entail checking stack bounds pretty much
@@ -168,8 +175,8 @@ int cmd_move(int argc, char** argv) {
 
             // perform visual cmd in move.c
 
-            Undo* undo = getUndoFromMove(b, mv);
-            pushUndoToStack(b, undo);
+            Undo64 undo = createUndo64(mv, b->gamestate);
+            pushUndo64ToStack(b, undo);
             makeMove(b, mv);
             //printf("Visual move: %s\n", mvHex);
             printBoard(b);
@@ -196,6 +203,12 @@ int cmd_move(int argc, char** argv) {
     };
 
     mv = getMoveFromNotation(b, strMove);  // set move
+
+    if (mv == NULL_MOVE) {
+        fprintf(stderr, "Error: Invalid Move: %s\n", strMove);
+        return 1;
+    }
+
     if (!force) {
         // checks legal
         handleMakeMove(b, mv);
@@ -204,11 +217,9 @@ int cmd_move(int argc, char** argv) {
     }
 
     if (visual) {  // explicitly do not check legal
-        Undo* undo = getUndoFromMove(b, mv);
-        pushUndoToStack(b, undo);
         makeMove(b, mv);
         printBoard(b);
-        performUndo(b, undo);
+        handleUndo(b, NULL_UNDO);  // undo the move we just made, NULL
         return 0;
     }
 
@@ -307,7 +318,7 @@ int cmd_hist(int argc, char** argv) {
     (void) argc;
     (void) argv;
 
-    printHistory(game->board->history);
+    printHistory(game->board->undoStack, game->board->ply);
     return 0;
 }
 int cmd_eval(int argc, char** argv) {
@@ -393,8 +404,13 @@ int cmd_board(int argc, char** argv) {
             continue;
         }
 
+        if (strncmp(argv[i], "-gns", 4) == 0) {
+            printGameState(game->board, false);
+            return 0;
+        }
+
         if (strncmp(argv[i], "-g", 2) == 0) {
-            printGameState(game->board, make_square);
+            printGameState(game->board, true);
             return 0;
         }
         
@@ -420,7 +436,6 @@ int cmd_board(int argc, char** argv) {
             }
         }
             
-        
     }
     // if the user is retarded and puts in multiple flags, we let fate decide
     if (flag_b && !flag_x) {
@@ -448,4 +463,16 @@ int cmd_board(int argc, char** argv) {
     }
 
     return 0;
+}
+
+void handleResign(Board* b) {
+
+    // placeholder. optionally, show eval o resignation once that is implemented
+    bool colourToMove = isBlackToMove(b->gamestate);
+    if (colourToMove) {
+        fprintf(stderr, "Black resigns. 1-0.\n");
+    } else {
+        fprintf(stderr, "White resigns. 0-1.\n");
+    }
+    exit(0);
 }

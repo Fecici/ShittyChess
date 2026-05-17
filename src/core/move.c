@@ -173,23 +173,35 @@ Move getMoveFromNotation(Board* b, char* moveStr) {
     Piece piece         = getPieceOnSquare(b, src);
     Piece capturedPiece = getPieceOnSquare(b, dst);
 
-
     // we can do castling here. check that type is king and that we move 2 or 3 squares just look at square enum
 
     if (piece == WK && src == e1) {
-        if (dst == g1 || dst == h1 || dst == f1 || dst == a1) {
+        if (dst == g1 || dst == h1) {
+            setDst(&m, g1);
             setCastled(&m, true);
             return m;
         }
-    } else if (piece == BK && src == e8) {
-        if (dst == g8 || dst == h8 || dst == f8 || dst == a8) {
+        else if (dst == c1 || dst == a1) {
+            setDst(&m, c1);
             setCastled(&m, true);
+            return m;
+        }
+
+    } else if (piece == BK && src == e8) {
+        if (dst == g8 || dst == h8) {
+            setCastled(&m, true);
+            setDst(&m, g8);
+            return m;
+        }
+        else if (dst == c8 || dst == a8) {
+            setCastled(&m, true);
+            setDst(&m, c8);
             return m;
         }
     }
     
 
-    setCapturedPiece(&m, capturedPiece);
+    setCapturedPiece(&m, capturedPiece);  // after castling because castling doesnt capture anything
     if (piece == EMPTY) {
         // this should not happen in a legal move, but we will allow it for now and let the application deal with it
         return NULL_MOVE;
@@ -222,11 +234,24 @@ Move getMoveFromNotation(Board* b, char* moveStr) {
         setPromotion(&m, promoType);
     }
 
-    // check for double pawn push, goes hand in hand with en passant
-    if (getPieceType(piece) == WP && dstRank == '4' && srcRank == '2') {
-        setEnPassant(&m, dst - 8);  // set en passant square to the square behind the pawn
-    } else if (getPieceType(piece) == BP && dstRank == '5' && srcRank == '7') {
-        setEnPassant(&m, dst + 8);
+    // check for double pawn push
+    if (piece == WP && dstRank == '4' && srcRank == '2') {
+
+        setDoublePush(&m, true);
+    
+    } 
+
+    else if (piece == BP && dstRank == '5' && srcRank == '7') {
+
+        setDoublePush(&m, true);
+    }
+
+    if (dst == getEnPassantSquare(gamestate) && piece == WP && srcRank == '5' && dstRank == '6') {
+        setEnPassant(&m, dst);
+    }
+
+    else if (dst == getEnPassantSquare(gamestate) && piece == BP && srcRank == '4' && dstRank == '3') {
+        setEnPassant(&m, dst);
     }
 
     return m;
@@ -251,8 +276,23 @@ bool validMoveNotation(char* moveStr) {
         }
     }
 
+    if (moveStr[0] == moveStr[2] && moveStr[1] == moveStr[3]) {
+        // source and destination squares cannot be the same
+        return false;
+    }
+
     // check 5th char (promotion)
     if (len == 5) {
+        if (moveStr[3] != '8' && moveStr[3] != '1') {
+            // promotion can only happen on the last rank
+            return false;
+        }
+
+        if (moveStr[1] != '7' && moveStr[1] != '2') {
+            // promotion can only happen from the 7th rank for white and 2nd rank for black
+            return false;
+        }
+
         char c = moveStr[4];
         if (c != 'q' && c != 'r' && c != 'b' && c != 'n') return false;
     }
@@ -416,13 +456,17 @@ Move getMoveFromHex(char* hexStr) {
 
 void makeMove(Board* b, Move move) {
 
+    ///TODO: when i have the chance, init 1 ptr for bitboards and for gamestate
     // in here, the actual changes to the board struct are made
     // assumed pseudolegal
+
+    uint64_t* bitboards = b->bitboards;
+    Piece* pieces = b->pieces;
 
     Square src = getSrc(move);
     Square dst = getDst(move);
 
-    Piece srcPiece = getPieceOnSquare(b, src);
+    Piece srcPiece = pieces[src];
     Piece capturedPiece = getCapturedPiece(move);
     Piece promoPiece = EMPTY_TYPE;
     bool isCapture = capturedPiece != EMPTY;
@@ -430,134 +474,118 @@ void makeMove(Board* b, Move move) {
     Square epSquare = getEnPassant(move);
     bool isPromotion = promo != 0;
     bool isEnPassant = epSquare != 0;
-    bool isDoublePawnPush = getDoublePush(move) != 0;  // for now, we will just set double pawn push to be the same as en passant, since they are closely related and we can always change this later if we need to
+    bool isDoublePawnPush = getDoublePush(move) != 0;  // for now, just set double pawn push to be the same as en passant, since they are closely related and we can always change this later if we need to
     ///TODO: castling MUST be normalized before this function, so that checks for certain squares are not done (they are unnecessary)
-    bool isCastling = isCastled(move); 
+    bool isCastling = isCastled(move) != 0; 
     bool blackToMove = isBlackToMove(b->gamestate);
-
-    // find corresponding bitboard
-    uint64_t* dstBitboard = NULL;
-    uint64_t* srcBitboard = &b->bitboards[getBitboardIndex(srcPiece)];
-    if (isCapture) {
-        dstBitboard = &b->bitboards[getBitboardIndex(capturedPiece)];
-    }
 
     uint64_t srcMask = squareBitboards[src];
     uint64_t dstMask = squareBitboards[dst];
 
     // toggle bits xor
-    *srcBitboard ^= srcMask;  // remove piece from source square
-    *srcBitboard ^= dstMask;   // add piece to destination square
-    b->pieces[src] = EMPTY;  // update piece array
-    b->pieces[dst] = srcPiece;
+    bitboards[getBitboardIndex(srcPiece)] ^= srcMask | dstMask;  // remove/add piece from src/dst square
+    pieces[src] = EMPTY;  // update piece array
+    pieces[dst] = srcPiece;
+
+    // update zobrist hash
+    b->zobrist ^= getZobristHash(srcPiece, src);  // remove piece from source square
+    b->zobrist ^= getZobristHash(srcPiece, dst);  // add piece to destination square
+
+    // update game state
+    b->gamestate ^= GS_colourtoMoveMask;  // toggle side to move
+    if (isCapture || getPieceType(srcPiece) == PAWN) {
+        setHalfmoveClock(&b->gamestate, 0);  // reset halfmove clock
+    } else {
+        incrHalfmoveClock(&b->gamestate);  // increment halfmove clock
+    }
+
+    // clear enpassant square
+    setEnPassantSquare(&b->gamestate, 0);
+
+    ///TODO: the order in which we check these conditions might be optimizable. castling happens rarely,
+    // so what is the true tradeoff between checking it now or checking it later, if we may possibly return early?
+    // etc. 
+
+    if (isCastling) {
+        // move rook
+        // perhaps we can reuse bits or reserved to specify which rook (determines the whole castle) instead of this thing
+        // but it MUST be consistent with the undo assumptions
+        ///TODO: use 1 zobrist ptr (google if worth it or not)
+        if (dst == g1) {  // white kingside
+
+            bitboards[iWR] ^= (squareBitboards[h1] | squareBitboards[f1]);  // move rook
+            pieces[f1] = WR;
+            pieces[h1] = EMPTY;
+            removeCastlingRights(&b->gamestate, whiteLongCastleMask | whiteShortCastleMask);  // remove white castling right
+            b->zobrist ^= getZobristHash(WR, h1) ^ getZobristHash(WR, f1);  // move rook from h1 to f1
+            b->zobrist ^= getZobristHash(WK, e1) ^ getZobristHash(WK, g1);  // move king from e1 to g1
+            b->zobrist ^= getZobristCastleHash(whiteLongCastleMask);  // update castling hash for white kingside
+
+        } else if (dst == c1) {  // white queenside
+
+            bitboards[iWR] ^= (squareBitboards[a1] | squareBitboards[d1]);
+            pieces[d1] = WR;
+            pieces[a1] = EMPTY;
+            removeCastlingRights(&b->gamestate, whiteShortCastleMask | whiteLongCastleMask);  // remove white castling right
+            b->zobrist ^= getZobristHash(WR, a1) ^ getZobristHash(WR, d1);  // move rook from a1 to d1
+            b->zobrist ^= getZobristHash(WK, e1) ^ getZobristHash(WK, c1);  // move king from e1 to c1
+            b->zobrist ^= getZobristCastleHash(whiteShortCastleMask);  // update castling hash for white queenside
+
+        } else if (dst == g8) {  // black kingside
+
+            bitboards[iBR] ^= (squareBitboards[h8] | squareBitboards[f8]);
+            pieces[f8] = BR;
+            pieces[h8] = EMPTY;
+            removeCastlingRights(&b->gamestate, blackLongCastleMask | blackShortCastleMask);  // remove black castling right
+            b->zobrist ^= getZobristHash(BR, h8) ^ getZobristHash(BR, f8);  // move rook from h8 to f8
+            b->zobrist ^= getZobristHash(BK, e8) ^ getZobristHash(BK, g8);  // move king from e8 to g8
+            b->zobrist ^= getZobristCastleHash(blackLongCastleMask);  // update castling hash for black kingside
+
+        } else if (dst == c8) {  // black queenside
+
+            bitboards[iBR] ^= (squareBitboards[a8] | squareBitboards[d8]);
+            pieces[d8] = BR;
+            pieces[a8] = EMPTY;
+            removeCastlingRights(&b->gamestate, blackShortCastleMask | blackLongCastleMask);  // remove black castling right
+            b->zobrist ^= getZobristHash(BR, a8) ^ getZobristHash(BR, d8);  // move rook from a8 to d8
+            b->zobrist ^= getZobristHash(BK, e8) ^ getZobristHash(BK, c8);  // move king from e8 to c8
+            b->zobrist ^= getZobristCastleHash(blackShortCastleMask);  // update castling hash for black queenside
+        }
+
+        return;
+    }
+
+    if (isDoublePawnPush) {
+        epSquare = (blackToMove) ? dst + 8 : dst - 8;  // set en passant square to the square behind the pawn
+        setEnPassantSquare(&b->gamestate, epSquare);  // set en passant square in gamestate
+        b->zobrist ^= getZobristEnPassantHash(epSquare & 7);  // update en passant hash, & 7 is to get file of epSquare
+        return;
+    }
 
     if (isCapture) {
-        *dstBitboard ^= dstMask;  // remove captured piece from destination square
+        bitboards[getBitboardIndex(capturedPiece)] ^= dstMask;  // remove captured piece from destination square
+        b->zobrist ^= getZobristHash(capturedPiece, dst);  // remove captured piece from destination square
     }
 
     if (isPromotion) {
         // toggle promotion piece on destination square
         uint8_t promoColour = getPiecesColour(srcPiece);
         promoPiece = (promoColour << 3) | promo;
-        uint64_t* promoBitboard = &b->bitboards[getBitboardIndex(promoPiece)];
-        *promoBitboard ^= dstMask;  // add promotion piece to destination square
+        bitboards[getBitboardIndex(promoPiece)] ^= dstMask;  // add promotion piece to destination square
+        b->zobrist ^= getZobristHash(promoPiece, dst);  // add promotion piece to destination square
+
+        return;  // capture already checked
     }
 
+    // pawn CAPTURES enpassant
     if (isEnPassant) {
         // remove captured pawn
-        uint64_t epMask = 1ULL << epSquare;
-        Piece epCapturedPiece = blackToMove ? WP : BP;
-        uint64_t* epBitboard = &b->bitboards[getBitboardIndex(epCapturedPiece)];
-        *epBitboard ^= epMask;  // remove captured pawn from en passant square
+        bitboards[getBitboardIndex(capturedPiece)] ^= squareBitboards[epSquare];  // remove captured pawn from en passant square
+        pieces[epSquare + (blackToMove ? 8 : -8)] = EMPTY;  // remove captured pawn
+        b->zobrist ^= getZobristHash(capturedPiece, epSquare);  // remove captured pawn from en passant zobrist
+        // src and dst toggle already happens
     }
 
-    if (isCastling) {
-        // move rook
-        // perhaps we can reuse bits or reserved to specify which rook (determines the whole castle) instead of this thing
-        // but it MUST be consistent with the undo assumptions
-        if (dst == g1) {  // white kingside
-            b->bitboards[getBitboardIndex(WR)] ^= (squareBitboards[h1]) | (squareBitboards[f1]);
-            removeCastlingRights(&b->gamestate, whiteLongCastleMask);  // remove white kingside castling right
-            b->zobrist ^= getZobristHash(WR, h1) ^ getZobristHash(WR, f1);  // move rook from h1 to f1
-            b->zobrist ^= getZobristHash(WK, e1) ^ getZobristHash(WK, g1);  // move king from e1 to g1
-            b->zobrist ^= getZobristCastleHash(whiteLongCastleMask);  // update castling hash for white kingside
-
-        } else if (dst == c1) {  // white queenside
-            b->bitboards[getBitboardIndex(WR)] ^= (squareBitboards[a1]) | (squareBitboards[d1]);
-            removeCastlingRights(&b->gamestate, whiteShortCastleMask);  // remove white queenside castling right
-            b->zobrist ^= getZobristHash(WR, a1) ^ getZobristHash(WR, d1);  // move rook from a1 to d1
-            b->zobrist ^= getZobristHash(WK, e1) ^ getZobristHash(WK, c1);  // move king from e1 to c1
-            b->zobrist ^= getZobristCastleHash(whiteShortCastleMask);  // update castling hash for white queenside
-        } else if (dst == g8) {  // black kingside
-            b->bitboards[getBitboardIndex(BR)] ^= (squareBitboards[h8]) | (squareBitboards[f8]);
-            removeCastlingRights(&b->gamestate, blackLongCastleMask);  // remove black kingside castling right
-            b->zobrist ^= getZobristHash(BR, h8) ^ getZobristHash(BR, f8);  // move rook from h8 to f8
-            b->zobrist ^= getZobristHash(BK, e8) ^ getZobristHash(BK, g8);  // move king from e8 to g8
-            b->zobrist ^= getZobristCastleHash(blackLongCastleMask);  // update castling hash for black kingside
-        } else if (dst == c8) {  // black queenside
-            b->bitboards[getBitboardIndex(BR)] ^= (squareBitboards[a8]) | (squareBitboards[d8]);
-            removeCastlingRights(&b->gamestate, blackShortCastleMask);  // remove black queenside castling right
-            b->zobrist ^= getZobristHash(BR, a8) ^ getZobristHash(BR, d8);  // move rook from a8 to d8
-            b->zobrist ^= getZobristHash(BK, e8) ^ getZobristHash(BK, c8);  // move king from e8 to c8
-            b->zobrist ^= getZobristCastleHash(blackShortCastleMask);  // update castling hash for black queenside
-        }
-    }
-
-    if (isDoublePawnPush) {
-        // set en passant square
-        Square epSquare = blackToMove ? dst + 8 : dst - 8;
-        setEnPassant(&move, epSquare);
-        setEnPassantSquare(&b->gamestate, epSquare);
-    } else {
-        // clear en passant square
-        setEnPassantSquare(&b->gamestate, 0);
-    }
-
-    // update zobrist hash
-    b->zobrist ^= getZobristHash(srcPiece, src);  // remove piece from source square
-    b->zobrist ^= getZobristHash(srcPiece, dst);  // add piece to destination square
-    if (isCapture) {
-        b->zobrist ^= getZobristHash(capturedPiece, dst);  // remove captured piece from destination square
-    }
-    if (isPromotion) {
-        b->zobrist ^= getZobristHash(promoPiece, dst);  // add promotion piece to destination square
-    }
-    if (isEnPassant) {
-        Piece epCapturedPiece = blackToMove ? WP : BP;
-        b->zobrist ^= getZobristHash(epCapturedPiece, epSquare);  // remove captured pawn from en passant square
-        b->zobrist ^= getZobristEnPassantHash(epSquare & 7);  // update en passant hash, & 7 is to get file of epSquare
-
-    }
-
-    // update game state
-    b->gamestate ^= GS_colourtoMoveMask;  // toggle side to move
-    if (isCapture || getPieceType(srcPiece) == PAWN) {
-        b->gamestate &= ~GS_halfmoveClockMask;  // reset halfmove clock
-    } else {
-        b->gamestate = (b->gamestate & ~GS_halfmoveClockMask) | (((b->gamestate & GS_halfmoveClockMask) >> 8) + 1);  // increment halfmove clock
-    }
-
-    ///TODO: handle pushing move and undo to stack (in a wrapper maybe?)
-
-}
-
-int handleMakeMove(Board* b, Move move) {
-    // idk what this will do, maybe it is a wrapper.
-    // check colour to move, check legality unless forced (we just set the pieces there then and go around this function entirely)
-    bool colourToMove = isBlackToMove(b->gamestate);
-    Piece piece = getPieceOnSquare(b, getSrc(move));
-    if (piece == EMPTY || getPiecesColour(piece) != colourToMove) {
-        fprintf(stderr, "Illegal move: piece on source square does not match colour to move\n");
-        return 1;
-    }
-
-    if (!isLegalMove(b, move)) {
-        fprintf(stderr, "Illegal move: move is not legal in the current position\n");
-        return 1;
-    }
-
-    makeMove(b, move);
-    return 0;
 }
 
 Piece getPieceOnSquare(Board* b, Square sq) {

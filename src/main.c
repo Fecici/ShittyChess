@@ -8,6 +8,8 @@ char* const startFen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
 
 /*https://gist.github.com/peterellisjones/8c46c28141c162d1d8a0f0badbc9cff9*/
 const char* testFens[] = {
+    "r3k2r/pppbqppp/2np1n2/2b1p3/2B1P3/2NP1N2/PPPBQPPP/R3K2R w KQkq - 0 1",
+    "r1bqk1nr/pppp1ppp/2n5/2b1p3/2B1P3/5N2/PPPP1PPP/RNBQK2R w KQkq - 0 1",
     "rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 8",
     "r4rk1/1pp1qppp/p1np1n2/2b1p1B1/2B1P1b1/P1NP1N2/1PP1QPPP/R4RK1 w - - 0 10",
     "3k4/3p4/8/K1P4r/8/8/8/8 b - - 0 1",
@@ -55,7 +57,7 @@ int main(int argc, char** argv) {
 
                     int fenIndex = strtol(argv[i + 1], NULL, 10);
                     
-                    if (fenIndex >= 0 && fenIndex < sizeof(testFens) / sizeof(testFens[0])) {
+                    if (fenIndex >= 0 && fenIndex < sizeof(testFens) / sizeof(testFens[0])) {  // TODO: this will fail sometimes because the sizes are not uniform
 
                         fen = (char*)testFens[fenIndex];
 

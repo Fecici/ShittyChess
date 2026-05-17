@@ -47,11 +47,11 @@ char* getPieceNameFromIndex(uint8_t index) {
     return pieceNames[index];
 }
 
-void printHistory(History* h) {
+void printHistory(Undo64* undoStack, unsigned int ply) {
 
     printf("Move history (most recent move last):\n");
-    for (unsigned int i = 0; i < h->ply; i++) {
-        Move move = h->moveHistory[i];
+    for (unsigned int i = 0; i < ply; i++) {
+        Move move = getMoveFromUndo(undoStack[i]);
         Square src = getSrc(move);
         Square dst = getDst(move);
         printf("%u. %c%d -> %c%d\n", getMoveCount(i), 'a' + src % 8, 8 - src / 8, 'a' + dst % 8, 8 - dst / 8);
@@ -67,7 +67,14 @@ void printGameState(Board* b, bool makeSquare) {
     printf("Colour to move: %s\n", isBlackToMove(b->gamestate) ? "Black" : "White");
     printf("Halfmove clock: %u\n", getHalfmoveClock(b->gamestate));
     printf("En passant square: %u\n", getEnPassantSquare(b->gamestate));
-    printf("Castling rights: %u\n", getCastlingRights(b->gamestate));
+    printf("Castling rights: %x | BLACK SHORT %x | BLACK LONG %x | WHITE SHORT %x | WHITE LONG %x\n", 
+        getCastlingRights(b->gamestate), 
+        canBlackCastleShort(b->gamestate) ? 1 : 0,
+        canBlackCastleLong(b->gamestate) ? 1 : 0,
+        canWhiteCastleShort(b->gamestate) ? 1 : 0,
+        canWhiteCastleLong(b->gamestate) ? 1 : 0
+    );
+
     printf("Evaluation: %d\n", evaluateBoard(b));
     for (int i = 31; i >= 0; i--) {
         uint32_t k = ((uint32_t)1 << i);

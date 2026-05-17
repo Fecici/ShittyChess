@@ -145,7 +145,7 @@ static inline uint8_t getHalfmoveClock(Gamestate gamestate) {
 }
 
 static inline uint8_t getEnPassantSquare(Gamestate gamestate) {
-    
+    // this should only be called when generating moves
     return (uint8_t) ((gamestate & GS_enpassantSquareMask) >> 4);
 }
 
@@ -168,7 +168,7 @@ static inline uint8_t getColourToMove(Gamestate gamestate) {
 
 static inline bool isBlackToMove(Gamestate gamestate) {
 
-    return getColourToMove(gamestate) == 1;  // since this would return 0 for white's turn, we can just keep this since itll act as a bool anyways
+    return getColourToMove(gamestate) != 0;  // since this would return 0 for white's turn, we can just keep this since itll act as a bool anyways
 
 }
 
@@ -237,6 +237,18 @@ static inline uint64_t getBitboardForPiece(Board* b, Piece piece) {
 static inline uint64_t getSquareBitboard(Square s) {
     
     return squareBitboards[s];
+}
+
+static inline Move getMoveFromUndo(Undo64 undo) {
+    return (Move) (undo & UNDO_moveMask);
+}
+
+static inline Gamestate getGamestateFromUndo(Undo64 undo) {
+    return (Gamestate) ((undo & UNDO_gsMask) >> 32);
+}
+
+static inline Undo64 createUndo64(Move move, Gamestate gamestate) {
+    return ((Undo64)gamestate << 32) | move;
 }
 
 #endif

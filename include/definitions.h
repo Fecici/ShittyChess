@@ -20,9 +20,14 @@
 //                         reserved castled capturedPiece enpassant promo     target        source
 typedef uint32_t Move;
 typedef uint32_t Gamestate;
+typedef uint64_t Undo64;
+
+static const uint64_t UNDO_moveMask = 0x00000000FFFFFFFF;  // the last-played move
+static const uint64_t UNDO_gsMask   = 0xFFFFFFFF00000000;  // the gamestate before the move is played
 
 static const Move NULL_MOVE = 0;
 static const Gamestate NULL_GAMESTATE = 0;
+static const Undo64 NULL_UNDO = 0;
 
 // Move masks
 static const uint32_t castleMask        = 0x04000000;
@@ -50,6 +55,7 @@ static const uint8_t promoRook   = 0x6;
 static const uint8_t promoQueen  = 0x7;
 
 // stuff here stores data to make undoing trivial
+// REPLACE WITH UINT64_T FOR SPEED
 typedef struct {
     uint64_t zobrist;
     uint8_t captured;
@@ -62,7 +68,7 @@ typedef struct {
 // these update in parallel. undo holds metadata for easy undo of boards
 typedef struct {
 
-    uint64_t hashHistory[MAX_PLY];
+    uint64_t hashHistory[MAX_PLY];  // needed? undo hash is just xor again, g^2 = 0
     Move moveHistory[MAX_PLY];
     Undo undoHistory[MAX_PLY];
     Gamestate gamestateHistory[MAX_PLY];
@@ -104,7 +110,7 @@ typedef struct {
     uint64_t bitboards[12];   // stores all bitboards, indexed by iCT for Colour, Type = CT
     uint64_t boardUnions[3];  // eg all white, all black, all pieces - "blockers"
     uint64_t zobrist;  // updated incrementally each move or undo via xor
-    History* history;   // idk if i need this
+    Undo64   undoStack[MAX_PLY];
 
     // gameState format:
     // _ _ _ _ _ _ _ _ | _ _ _ _ _ _ T H | H H H H H H E E | E E E E C C C C 
@@ -152,6 +158,8 @@ typedef enum {
 
 }  Square;  // a1 = 0, h8 = 63. for rank, file: square(rank, file) = 64 - (8 - (rank - 1)) * 8 - (8 - (file - 1)). see "getSquareIndex" function in fen.c
 
+
+// "why" because its O(1) lookup
 static const uint64_t squareBitboards[64] = {
 
     0b0000000000000000000000000000000000000000000000000000000000000001,
