@@ -5,6 +5,7 @@ CommandAbstract cmds[] = {
     {.name = "help", .cmd = cmd_help},
     {.name = "undo", .cmd = cmd_undo},
     {.name = "move", .cmd = cmd_move},
+    {.name = "m", .cmd = cmd_move},
     {.name = "perft", .cmd = cmd_perft},
     {.name = "children", .cmd = cmd_children},
     {.name = "quit", .cmd = cmd_quit},
@@ -12,6 +13,7 @@ CommandAbstract cmds[] = {
     {.name = "resign", .cmd = cmd_resign},
     {.name = "fen", .cmd = cmd_fen},
     {.name = "legal-moves", .cmd = cmd_moves},
+    {.name = "lm", .cmd = cmd_moves},
     {.name = "history", .cmd = cmd_hist},
     {.name = "eval", .cmd = cmd_eval},
     {.name = "hash", .cmd = cmd_hash},
@@ -329,8 +331,71 @@ int cmd_fen(int argc, char** argv) {
     return 0;
 }
 int cmd_moves(int argc, char** argv) {
-    (void) argc;
-    (void) argv;
+    
+    ///TODO: define these print things
+    // -pl pseudo-legal, -q/r/k/p/b/n to specify piece (default all), -src for square (eg a4, e5), --white or --black to specify colour, -s for square bitboard
+    // idc about making this robust, -s has to come before the other guys, truly idc
+
+    if (argc <= 1) {
+        printLegalMoves(game->board);
+        return 0;
+    }
+
+    bool printSquare = false;
+
+    for (int i = 1; i < argc; i++) {
+        if (strncmp(argv[i], "-pl", 3) == 0) {
+            // print pseudo-legal moves
+            printPseudoLegalMoves(game->board, printSquare);
+            return 0;
+        }
+
+        if (strncmp(argv[i], "-src", 4) == 0) {
+            if (i + 1 < argc) {
+                char* squareStr = argv[++i];
+                if (!validSquareNotation(squareStr)) {  ///TODO: define this
+                    fprintf(stderr, "Error: Invalid square notation: %s\n", squareStr);
+                    return 1;
+                }
+                Square src = getSquareFromNotation(squareStr);  ///TODO: define this
+                printLegalMovesFromSquare(game->board, src, printSquare);    ///TODO: define this
+                return 0;
+            } else {
+                fprintf(stderr, "Error: -src option requires a square argument\n");
+                return 1;
+            }
+        }
+
+        if (strncmp(argv[i], "--white", 7) == 0) {
+            printLegalMovesForColour(game->board, WHITE, printSquare);
+            return 0;
+        }
+        if (strncmp(argv[i], "--black", 7) == 0) {
+            printLegalMovesForColour(game->board, BLACK, printSquare);
+            return 0;
+        }
+
+        if (strncmp(argv[i], "-s", 2) == 0) {
+            printSquare = true;
+            continue;
+        }
+        if (strncmp(argv[i], "-p", 2) == 0) {
+            if (i + 1 < argc) {
+                char* pieceStr = argv[++i];
+                if (!isValidPiece(pieceStr[0])) {
+                    fprintf(stderr, "Error: Invalid piece specifier: %s\n", pieceStr);
+                    return 1;
+                }
+                Piece piece = getPieceFromChar(pieceStr[0]);
+                printLegalMovesForPiece(game->board, piece, printSquare);
+                return 0;
+            } else {
+                fprintf(stderr, "Error: -p option requires a piece specifier argument\n");
+                return 1;
+            }
+        }
+    }
+
     return 0;
 }
 int cmd_hist(int argc, char** argv) {
