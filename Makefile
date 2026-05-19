@@ -11,6 +11,7 @@ SRC = \
 	src/cli/ui.c \
 	src/core/command.c \
 	src/core/fen.c \
+	src/core/movegen.c \
 	src/core/move.c \
 	src/core/history.c \
 	src/core/parse.c \

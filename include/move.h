@@ -4,6 +4,7 @@
 #include "definitions.h"
 #include "bitUtils.h"
 #include "zobrist.h"
+#include "movegen.h"
 
 void makeMove(Board* b, Move move);
 Move getMoveFromHex(char* hexStr);

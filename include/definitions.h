@@ -29,6 +29,18 @@ static const Move NULL_MOVE = 0;
 static const Gamestate NULL_GAMESTATE = 0;
 static const Undo64 NULL_UNDO = 0;
 
+// who knows if ill use all of these, but some of them are useful
+static const uint64_t fileH = 0x0808080808080808;
+static const uint64_t fileA = 0x0101010101010101;
+static const uint64_t rank1 = 0x00000000000000FF;
+static const uint64_t rank2 = 0x000000000000FF00;
+static const uint64_t rank3 = 0x0000000000FF0000;
+static const uint64_t rank4 = 0x00000000FF000000;
+static const uint64_t rank5 = 0x000000FF00000000;
+static const uint64_t rank6 = 0x0000FF0000000000;
+static const uint64_t rank7 = 0x00FF000000000000;
+static const uint64_t rank8 = 0xFF00000000000000;
+
 // Move masks
 static const uint32_t castleMask        = 0x04000000;
 static const uint32_t doublePushMask    = 0x02000000;
