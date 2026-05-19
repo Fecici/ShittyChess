@@ -12,7 +12,7 @@
 // debug stuff
 
 // must pass
-const char *sanTests[30] = {
+const char *sanTests[] = {
     "e4",          // pawn push
     "d5",          // pawn push
     "Nf3",         // knight move
@@ -45,12 +45,13 @@ const char *sanTests[30] = {
     "Qxf7#",       // queen capture mate
     "Kxf2",        // king capture
     "O-O+",        // castling check
-    "O-O-O#"       // castling mate
+    "O-O-O#",      // castling mate
+    NULL
 };
 
 
 // must fail
-const char *invalidSanTests[40] = {
+const char *invalidSanTests[] = {
     "",             // empty
     " ",            // whitespace only
     "e",            // missing rank
@@ -100,21 +101,22 @@ const char *invalidSanTests[40] = {
     "Qh4xe1+!",     // annotation not strict SAN
     "Qh4xe1??",     // annotation not strict SAN
     "Raxd1=Q",      // non-pawn promotion
-    "Kxe1=Q"        // non-pawn promotion
+    "Kxe1=Q",       // non-pawn promotion
+    NULL  // terminator
 };
 
 
 bool DEBUG_algebraicNotationTests() {
 
     bool allPassed = true;
-    for (int i = 0; i < 30; i++) {
+    for (int i = 0; sanTests[i] != NULL; i++) {
         if (!validAlgebraicNotation(sanTests[i])) {
             printf("%d: Test failed: %s\n", i, sanTests[i]);
             allPassed = false;
         }
     }
 
-    for (int i = 0; i < 40; i++) {
+    for (int i = 0; invalidSanTests[i] != NULL; i++) {
         if (validAlgebraicNotation(invalidSanTests[i])) {
             printf("%d: Test failed: %s\n", i, invalidSanTests[i]);
             allPassed = false;
@@ -246,12 +248,15 @@ Move getMoveFromNotation(Board* b, char* moveStr) {
         setDoublePush(&m, true);
     }
 
+    ///TODO: this causes a segfault for some reason
     if (dst == getEnPassantSquare(gamestate) && piece == WP && srcRank == '5' && dstRank == '6') {
         setEnPassant(&m, dst);
+        setCapturedPiece(&m, BP);
     }
 
     else if (dst == getEnPassantSquare(gamestate) && piece == BP && srcRank == '4' && dstRank == '3') {
         setEnPassant(&m, dst);
+        setCapturedPiece(&m, WP);
     }
 
     return m;
@@ -261,7 +266,7 @@ bool validMoveNotation(char* moveStr) {
 
     // for now we just check if the moveStr is 4 or 5 chars (for promotion) and if the first 4 chars are in the correct format. this is not a full validation of the move, just a check of the notation. we will check if the move is legal later in move.c
 
-    int len = strlen(moveStr);
+    int len = (int) strlen(moveStr);
     if (len != 4 && len != 5) return false;
 
     // check first 4 chars
@@ -322,7 +327,7 @@ bool validAlgebraicNotation(char* moveStr) {
 
     // [piece?][disambiguation?][x?][destination][promotion?][check/mate?]
 
-    int len = strlen(moveStr);
+    int len = (int) strlen(moveStr);
     if (len < 2 || len > 7) return false;  // minimum is e4, maximum is axb8=Q+
 
     // check for castling
@@ -402,7 +407,7 @@ Move getMoveFromAlgebra(Board* b, char* moveStr) {
 
     Move m = NULL_MOVE;
 
-    int len = strlen(moveStr);
+    //int len = (int) strlen(moveStr);
     int i = 0;
 
     // check for castling
@@ -458,6 +463,10 @@ void makeMove(Board* b, Move move) {
 
     ///TODO: when i have the chance, init 1 ptr for bitboards and for gamestate
     // in here, the actual changes to the board struct are made
+    // many optimizations could be made, like using only one access per thing, stuff like that
+    // but it works right now and these things need to be thought through in more rigour later
+    // ie, im lazy
+    // this looks so fucking ugly, and slow. but maybe its not. maybe there is beauty that eludes me.
     // assumed pseudolegal
 
     uint64_t* bitboards = b->bitboards;
@@ -470,7 +479,7 @@ void makeMove(Board* b, Move move) {
     Piece capturedPiece = getCapturedPiece(move);
     Piece promoPiece = EMPTY_TYPE;
     bool isCapture = capturedPiece != EMPTY;
-    uint8_t promo = getPromotion(move);
+    Piece promo = (Piece) getPromotion(move) - 2;  // -2 to convert to piece
     Square epSquare = getEnPassant(move);
     bool isPromotion = promo != 0;
     bool isEnPassant = epSquare != 0;
@@ -493,6 +502,46 @@ void makeMove(Board* b, Move move) {
 
     // update game state
     b->gamestate ^= GS_colourtoMoveMask;  // toggle side to move
+
+    // now we want to accurately track anything that affects castling, like rook/king, capturing rook.
+    if (srcPiece == WK) {
+        removeCastlingRights(&b->gamestate, whiteLongCastleMask | whiteShortCastleMask);  // remove white castling right
+        b->zobrist ^= getZobristCastleHash(whiteLongCastleMask) ^ getZobristCastleHash(whiteShortCastleMask);  // update castling hash for white
+    } else if (srcPiece == BK) {
+        removeCastlingRights(&b->gamestate, blackLongCastleMask | blackShortCastleMask);  // remove black castling right
+        b->zobrist ^= getZobristCastleHash(blackLongCastleMask) ^ getZobristCastleHash(blackShortCastleMask);  // update castling hash for black
+    }
+
+    if (srcPiece == WR && src == h1) {
+        removeCastlingRights(&b->gamestate, whiteShortCastleMask);  // remove white kingside castling right
+        b->zobrist ^= getZobristCastleHash(whiteShortCastleMask);  // update castling hash for white kingside
+    } else if (srcPiece == WR && src == a1) {
+        removeCastlingRights(&b->gamestate, whiteLongCastleMask);  // remove white queenside castling right
+        b->zobrist ^= getZobristCastleHash(whiteLongCastleMask);  // update castling hash for white queenside
+    } else if (srcPiece == BR && src == h8) {
+        removeCastlingRights(&b->gamestate, blackShortCastleMask);  // remove black kingside castling right
+        b->zobrist ^= getZobristCastleHash(blackShortCastleMask);  // update castling hash for black kingside
+    } else if (srcPiece == BR && src == a8) {
+        removeCastlingRights(&b->gamestate, blackLongCastleMask);  // remove black queenside castling right
+        b->zobrist ^= getZobristCastleHash(blackLongCastleMask);  // update castling hash for black queenside
+    }
+
+    if (isCapture) {
+        if (capturedPiece == WR && dst == h1) {
+            removeCastlingRights(&b->gamestate, whiteShortCastleMask);  // remove white kingside castling right
+            b->zobrist ^= getZobristCastleHash(whiteShortCastleMask);  // update castling hash for white kingside
+        } else if (capturedPiece == WR && dst == a1) {
+            removeCastlingRights(&b->gamestate, whiteLongCastleMask);  // remove white queenside castling right
+            b->zobrist ^= getZobristCastleHash(whiteLongCastleMask);  // update castling hash for white queenside
+        } else if (capturedPiece == BR && dst == h8) {
+            removeCastlingRights(&b->gamestate, blackShortCastleMask);  // remove black kingside castling right
+            b->zobrist ^= getZobristCastleHash(blackShortCastleMask);  // update castling hash for black kingside
+        } else if (capturedPiece == BR && dst == a8) {
+            removeCastlingRights(&b->gamestate, blackLongCastleMask);  // remove black queenside castling right
+            b->zobrist ^= getZobristCastleHash(blackLongCastleMask);  // update castling hash for black queenside
+        }
+    }
+
     if (isCapture || getPieceType(srcPiece) == PAWN) {
         setHalfmoveClock(&b->gamestate, 0);  // reset halfmove clock
     } else {
@@ -572,6 +621,8 @@ void makeMove(Board* b, Move move) {
         uint8_t promoColour = getPiecesColour(srcPiece);
         promoPiece = (promoColour << 3) | promo;
         bitboards[getBitboardIndex(promoPiece)] ^= dstMask;  // add promotion piece to destination square
+        bitboards[getBitboardIndex(srcPiece)] ^= dstMask;  // remove pawn from destination square
+        pieces[dst] = promoPiece;  // update piece array with promotion piece
         b->zobrist ^= getZobristHash(promoPiece, dst);  // add promotion piece to destination square
 
         return;  // capture already checked

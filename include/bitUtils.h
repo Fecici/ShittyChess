@@ -49,7 +49,7 @@ static inline Piece getPieceFromChar(const char c) {
 }
 
 static inline uint8_t getPiecesColour(Piece piece) {
-    return piece >> 3;
+    return (uint8_t) piece >> 3;
 };
 
 static inline uint8_t getSrc(Move move) {

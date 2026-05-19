@@ -5,6 +5,7 @@ OPTIMIZED = -O3 -DNDEBUG
 SANITIZE = -fsanitize=address,undefined
 
 SRC = \
+	src/core/definitions.c \
 	src/main.c \
 	src/cli/cli.c \
 	src/cli/ui.c \

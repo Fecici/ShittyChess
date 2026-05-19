@@ -292,6 +292,24 @@ int cmd_fen(int argc, char** argv) {
             free(fen);
             return 0;
         }
+
+        if (strncmp(argv[i], "-n", 2) == 0) {
+            if (i + 1 >= argc) {
+                fprintf(stderr, "Error: -n option requires a number as argument\n");
+                return 1;
+            }
+
+            int fenIndex = strtol(argv[++i], NULL, 10);
+            if (fenIndex < 0 || fenIndex >= sizeOfTestFens) {
+                fprintf(stderr, "Error: Invalid FEN index\n");
+                return 1;
+            }
+            char* fen = (char*)testFens[fenIndex];
+            loadFromFen(game->board, fen);
+            printBoard(game->board);
+            return 0;
+        }
+
         if (strncmp(argv[i], "-l", 2) == 0) {
             if (i + 1 < argc) {
                 char* fen = argv[++i];
@@ -300,6 +318,7 @@ int cmd_fen(int argc, char** argv) {
                     return 1;
                 }
                 loadFromFen(game->board, fen);
+                printBoard(game->board);
                 return 0;
             } else {
                 fprintf(stderr, "Error: -l option requires a FEN string argument\n");

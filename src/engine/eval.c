@@ -11,7 +11,7 @@ int evaluateBoard(Board* b) {
     for (int i = 0; i < 12; i++) {
         uint64_t bitboard = b->bitboards[i];
         while (bitboard) {
-            int square = __builtin_ctzll(bitboard);  // get index of least significant bit
+            //int square = __builtin_ctzll(bitboard);  // get index of least significant bit
             eval += (victim_value[i] * (i < 6 ? 1 : -1));  // add value for white pieces, subtract for black pieces
             bitboard &= bitboard - 1;  // clear least significant bit
         }

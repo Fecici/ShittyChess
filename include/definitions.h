@@ -231,4 +231,8 @@ static const uint64_t squareBitboards[64] = {
 
 static const int victim_value[7] = {0, 100, 320, 330, 500, 900, 2000000000}; // 0, P, N, B, R, Q, K
 
+// debug
+extern const char* testFens[];
+extern int sizeOfTestFens;
+
 #endif

@@ -18,6 +18,8 @@ Undo* getUndoFromMove(Board* b, Move move) {
 void performUndo(Board* b, Undo64 undo) {
     
     // null check in wrapper; assumed not null
+    // heres an idea, see if it helps. load zobrist, update zobrist, store zobrist,
+    // instead of constantly l/s-ing it
 
     b->gamestate = getGamestateFromUndo(undo);
     uint64_t* bitboards = b->bitboards;  // for convenience
@@ -33,15 +35,17 @@ void performUndo(Board* b, Undo64 undo) {
     Square dst = getDst(move);
     Piece capturedPiece = getCapturedPiece(move);  // can get from Move
     Piece srcPiece = getPieceOnSquare(b, dst);  // since we are undoing, the piece on the destination square is the piece that moved
-    uint64_t srcMask = 1ULL << src;
-    uint64_t dstMask = 1ULL << dst;
+    Square epSquare = getEnPassant(move);
+    uint64_t srcMask = squareBitboards[src];
+    uint64_t dstMask = squareBitboards[dst];
 
     bool isCapture = capturedPiece != EMPTY;
 
     // toggle bits xor
     bitboards[getBitboardIndex(srcPiece)] ^= (srcMask | dstMask);  // toggle piece src and dst
     pieces[src] = srcPiece;  // update piece array
-    pieces[dst] = capturedPiece;
+    if (!epSquare) pieces[dst] = capturedPiece;
+    else pieces[dst] = EMPTY;
 
     // restore src dst zobrist
     b->zobrist ^= getZobristHash(srcPiece, src);  // add piece to source square
@@ -109,14 +113,23 @@ void performUndo(Board* b, Undo64 undo) {
 
     uint8_t promo = getPromotion(move);
     if (promo) {
-        Piece promoPiece = (getPiecesColour(srcPiece) << 3) | promo;
-        b->zobrist ^= getZobristHash(promoPiece, dst);  // add promotion piece to destination square
+        uint8_t black = getPiecesColour(srcPiece) << 3;
+        Piece promoPiece = black | promo;
+        bitboards[getBitboardIndex(promoPiece)] ^= dstMask;  // remove promotion piece from destination square
+        bitboards[getBitboardIndex(srcPiece)] ^= dstMask;  // remove pawn from destination square again (we or'd it above)
+        pieces[dst] = capturedPiece;  // restore captured piece to destination square
+        pieces[src] = (Piece) PAWN | black;  // program only looks at dst square in general, which is not a pawn ever
+        b->zobrist ^= getZobristHash(promoPiece, dst);  // remove promotion piece from destination square
+        // does more zobrist need to happen? idk
         return;  // enpassant never happens
     }
 
-    Square epSquare = getEnPassant(move);
+    
     if (epSquare) {
-        Piece epCapturedPiece = (bool) getPiecesColour(srcPiece) ? WP : BP;  // because if the piece that moved is black, the captured piece must be a white pawn
+        bool blackToMove = isBlackToMove(b->gamestate);
+        Piece epCapturedPiece = blackToMove ? WP : BP;  // because if the piece that moved is black, the captured piece must be a white pawn
+        bitboards[getBitboardIndex(epCapturedPiece)] ^= squareBitboards[epSquare + (blackToMove ? 8 : -8)];  // add captured pawn to en passant square
+        pieces[epSquare + (blackToMove ? 8 : -8)] = epCapturedPiece;  // place the captured pawn back
         b->zobrist ^= getZobristHash(epCapturedPiece, epSquare);  // add captured pawn to en passant square
         b->zobrist ^= getZobristEnPassantHash(epSquare & 7);  // update en passant hash, & 7 is to get file of epSquare
 
