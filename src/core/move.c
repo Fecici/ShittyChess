@@ -479,7 +479,7 @@ void makeMove(Board* b, Move move) {
     Piece capturedPiece = getCapturedPiece(move);
     Piece promoPiece = EMPTY_TYPE;
     bool isCapture = capturedPiece != EMPTY;
-    Piece promo = (Piece) getPromotion(move) - 2;  // -2 to convert to piece
+    Piece promo = (Piece) getPromotion(move);
     Square epSquare = getEnPassant(move);
     bool isPromotion = promo != 0;
     bool isEnPassant = epSquare != 0;
@@ -619,7 +619,7 @@ void makeMove(Board* b, Move move) {
     if (isPromotion) {
         // toggle promotion piece on destination square
         uint8_t promoColour = getPiecesColour(srcPiece);
-        promoPiece = (promoColour << 3) | promo;
+        promoPiece = (promoColour << 3) | promo - 2;  // -2 to convert to piece
         bitboards[getBitboardIndex(promoPiece)] ^= dstMask;  // add promotion piece to destination square
         bitboards[getBitboardIndex(srcPiece)] ^= dstMask;  // remove pawn from destination square
         pieces[dst] = promoPiece;  // update piece array with promotion piece
