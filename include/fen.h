@@ -8,24 +8,6 @@
 bool loadFromFen(Board* b, char* fen);
 bool validFen(const char* fen);
 
-
-static inline unsigned int getSquareIndex(const int i, const int j) {
-
-    // i gives the chunk, j gives the index.
-    // eg, 00001000 00000000 ...
-    // is the 0th i and 3rd j, and the square is 59. so we need the conversion 64 - i*8 + j - 8 = 56 - i * 8 + j
-    return (unsigned int) (56 - i * 8 + j);
-
-}
-
-// return the uint64_t with a 1 in the position of rank 8 - i and file j
-static inline uint64_t getPieceBitboardSetter(const int i, const int j) {
-
-    uint64_t k = 1;
-
-    return k << getSquareIndex(i, j);
-}
-
 static inline uint8_t getValidCastlingFen(const char c) {
     switch (c) {
         case 'K': return whiteShortCastleMask;

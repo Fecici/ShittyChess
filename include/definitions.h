@@ -136,7 +136,25 @@ typedef struct {
     unsigned int ply;  // 0 initially. >> 1 to get full move clock. 
 } Board;
 
+static inline void updateBoardUnions(Board* b) {
 
+    // update the union bitboards after loading from fen, for testing purposes
+
+    uint64_t* bitboards = b->bitboards;
+    uint64_t* boardUnions = b->boardUnions;
+    uint64_t whitePieces = 0;
+    uint64_t blackPieces = 0;
+
+    for (int i = 0; i < 6; i++) {
+        whitePieces |= bitboards[i];
+        blackPieces |= bitboards[i + 6];
+    }
+
+    boardUnions[0] = whitePieces;
+    boardUnions[1] = blackPieces;
+    boardUnions[2] = whitePieces | blackPieces;
+
+}
 
 // index into bitboards
 enum PieceIndex {

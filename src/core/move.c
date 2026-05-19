@@ -601,14 +601,14 @@ void makeMove(Board* b, Move move) {
             b->zobrist ^= getZobristCastleHash(blackShortCastleMask);  // update castling hash for black queenside
         }
 
-        return;
+        goto finishMove;
     }
 
     if (isDoublePawnPush) {
         epSquare = (blackToMove) ? dst + 8 : dst - 8;  // set en passant square to the square behind the pawn
         setEnPassantSquare(&b->gamestate, epSquare);  // set en passant square in gamestate
         b->zobrist ^= getZobristEnPassantHash(epSquare & 7);  // update en passant hash, & 7 is to get file of epSquare
-        return;
+        goto finishMove;
     }
 
     if (isCapture) {
@@ -625,7 +625,7 @@ void makeMove(Board* b, Move move) {
         pieces[dst] = promoPiece;  // update piece array with promotion piece
         b->zobrist ^= getZobristHash(promoPiece, dst);  // add promotion piece to destination square
 
-        return;  // capture already checked
+        goto finishMove;  // capture already checked
     }
 
     // pawn CAPTURES enpassant
@@ -636,6 +636,10 @@ void makeMove(Board* b, Move move) {
         b->zobrist ^= getZobristHash(capturedPiece, epSquare);  // remove captured pawn from en passant zobrist
         // src and dst toggle already happens
     }
+
+    finishMove:
+    updateBoardUnions(b);
+    return;
 
 }
 

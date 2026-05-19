@@ -100,7 +100,7 @@ void performUndo(Board* b, Undo64 undo) {
             b->zobrist ^= getZobristCastleHash(blackShortCastleMask);  // update castling hash for black queenside
         }
 
-        return;  // no more zobrist updates needed
+        goto finishUndo;  // no more zobrist updates needed
     }
 
     // restore zobrist
@@ -121,7 +121,7 @@ void performUndo(Board* b, Undo64 undo) {
         pieces[src] = (Piece) PAWN | black;  // program only looks at dst square in general, which is not a pawn ever
         b->zobrist ^= getZobristHash(promoPiece, dst);  // remove promotion piece from destination square
         // does more zobrist need to happen? idk
-        return;  // enpassant never happens
+        goto finishUndo;  // enpassant never happens
     }
 
     
@@ -134,6 +134,10 @@ void performUndo(Board* b, Undo64 undo) {
         b->zobrist ^= getZobristEnPassantHash(epSquare & 7);  // update en passant hash, & 7 is to get file of epSquare
 
     }
+
+    finishUndo:
+    updateBoardUnions(b);
+    return;
 
 }
 

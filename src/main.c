@@ -62,6 +62,8 @@ int main(int argc, char** argv) {
     // init game state
 
     // init pieces
+    precomputeKnights();
+    precomputeKingMoves();
 
     // init "clock"
 
