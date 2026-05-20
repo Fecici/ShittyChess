@@ -3,6 +3,26 @@
 uint64_t precomputedKnightmoves[64];  // indexed by source square, gives bitboard of knight moves from that square
 uint64_t precomputedKingMoves[64];  // raw going 1 in each dir
 
+
+uint64_t (*const pieceGenerator[12]) (Board*, Square) = {
+    generateWhitePawnMoves,
+    generateWhiteKnightMoves,
+    generateWhiteBishopMoves,
+    generateWhiteRookMoves,
+    generateWhiteQueenMoves,
+    generateWhiteKingMoves,
+
+    generateBlackPawnMoves,
+    generateBlackKnightMoves,
+    generateBlackBishopMoves,
+    generateBlackRookMoves,
+    generateBlackQueenMoves,
+    generateBlackKingMoves
+};
+
+static const int directions[8][2] = {{1, 1}, {1, -1}, {-1, 1}, {-1, -1}, {1, 0}, {-1, 0}, {0, 1}, {0, -1}};  // bishops use 0-3 rook 4-7.
+
+
 /// TODO: many of these can likely become static inlines. maybe all except kings
 
 uint64_t generateWhitePawnMoves(Board* b, Square src) {
@@ -12,7 +32,7 @@ uint64_t generateWhitePawnMoves(Board* b, Square src) {
     uint64_t moves = 0;
 
     uint64_t whitePawns = b->bitboards[iWP];
-    uint64_t pawn = whitepawns & squareBitboards[src];
+    uint64_t pawn = whitePawns & squareBitboards[src];
     uint64_t emptySquares = ~b->boardUnions[2];  // all pieces
 
     // single pushes
@@ -341,8 +361,8 @@ void precomputeKingMoves() {
         uint64_t initialBitboard = squareBitboards[square];
 
         // add all 8 surrounding squares
-        moves |= initialBitboard << 8;   // up
-        moves |= initialBitboard >> 8;   // down
+        moves |= (initialBitboard << 8);           // up   // overflow becomes 0 in either direction
+        moves |= (initialBitboard >> 8);           // down
         moves |= (initialBitboard << 1) & ~fileA;  // right
         moves |= (initialBitboard >> 1) & ~fileH;  // left
         moves |= (initialBitboard << 9) & ~fileA;  // up right

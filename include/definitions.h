@@ -157,7 +157,7 @@ static inline void updateBoardUnions(Board* b) {
 }
 
 // index into bitboards
-enum PieceIndex {
+typedef enum {
     iWP,     // 0
     iWN,
     iWB,
@@ -170,7 +170,7 @@ enum PieceIndex {
     iBR,
     iBQ,
     iBK
-};
+} PieceIndex;
 
 typedef enum {WHITE, BLACK} Colour;
 

@@ -5,6 +5,7 @@
 #include "bitUtils.h"
 #include "history.h"
 #include "eval.h"
+#include "legal.h"
 
 void printGameState(Board* b, bool makeSquare);
 void printBoard(Board* b);
@@ -18,9 +19,15 @@ void printBitboardHexAll(Board* b);
 char* getPieceNameFromPiece(Piece piece);
 
 
+void printLegalMoves(Board* b, bool makeSquare);
+void printPseudoLegalMoves(Board* b, bool printSquare);
+void printLegalMovesFromSquare(Board* b, Square src, bool printSquare);
+void printLegalMovesForColour(Board* b, Colour colour, bool printSquare);
+void printLegalMovesForPiece(Board* b, Piece piece, bool printSquare);
+
+
 // Command stuff
 void printHelp();
-void printLegalMoves(Board* b);
 void printHistory(Undo64* undoStack, unsigned int ply);
 void printEval(Board* b);  // eval will be written somewhere else, this is a printing wrapper
 void printAttacksFromSquare(Board* b, Square sq);

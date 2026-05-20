@@ -142,6 +142,77 @@ void printMove(Move move) {
 
 }
 
+Move getMoveFromSquare(Board* b, Square src, Square dst, bool promo) {
+    Move m = NULL_MOVE;
+    setSrc(&m, src);
+    setDst(&m, dst);
+    Piece piece = getPieceOnSquare(b, src);
+    uint64_t srcMask = squareBitboards[src];
+    uint64_t dstMask = squareBitboards[dst];
+
+    if (piece == WK && src == e1) {
+        if (dst == g1 || dst == h1) {
+            setDst(&m, g1);
+            setCastled(&m, true);
+            return m;
+        }
+        else if (dst == c1 || dst == a1) {
+            setDst(&m, c1);
+            setCastled(&m, true);
+            return m;
+        }
+
+    } else if (piece == BK && src == e8) {
+        if (dst == g8 || dst == h8) {
+            setCastled(&m, true);
+            setDst(&m, g8);
+            return m;
+        }
+        else if (dst == c8 || dst == a8) {
+            setCastled(&m, true);
+            setDst(&m, c8);
+            return m;
+        }
+    }
+
+    Piece capturedPiece = getPieceOnSquare(b, dst);
+    setCapturedPiece(&m, capturedPiece);
+
+    if (promo) {
+        // the type of promo does not matter. We use queen because we still must undo later,
+        // but we only check at most 3 promo squares.
+        setPromotion(&m, promoQueen);
+        return m;
+    }
+
+    // check for double pawn push
+    if (piece == WP && (dstMask & rank4) && (srcMask & rank2)) {
+
+        setDoublePush(&m, true);
+        return m;
+    
+    } 
+
+    else if (piece == BP && (dstMask & rank5) && (srcMask & rank7)) {
+
+        setDoublePush(&m, true);
+        return m;
+    }
+
+    Square ep = getEnPassantSquare(b->gamestate);
+    if (piece == WP && dst == ep && (srcMask & rank5) && (dstMask & rank6)) {
+        setEnPassant(&m, dst);
+        setCapturedPiece(&m, BP);
+    }
+
+    else if (piece == BP && dst == ep && (srcMask & rank4) && (dstMask & rank3)) {
+        setEnPassant(&m, dst);
+        setCapturedPiece(&m, WP);
+    }
+
+    return m;
+}
+
 Move getMoveFromNotation(Board* b, char* moveStr) {
 
     // <move descriptor> ::= <from square><to square>[<promoted to>]
@@ -152,6 +223,8 @@ Move getMoveFromNotation(Board* b, char* moveStr) {
 
     // we assume valid notation at this point
     // get move from something like e2e4, e7e8Q, e1g1, e5d6 etc
+    // this function runs under the cli, speed is not of concern.
+    // getMoveFromSquare will be the function called by the engine.
 
     Move m = NULL_MOVE;
 
@@ -173,6 +246,12 @@ Move getMoveFromNotation(Board* b, char* moveStr) {
     Gamestate gamestate = b->gamestate; 
     bool blackToMove = isBlackToMove(gamestate);
     Piece piece         = getPieceOnSquare(b, src);
+
+    if (piece == EMPTY) {
+        // this should not happen in a legal move, but we will allow it for now and let the application deal with it
+        return NULL_MOVE;
+    }
+
     Piece capturedPiece = getPieceOnSquare(b, dst);
 
     // we can do castling here. check that type is king and that we move 2 or 3 squares just look at square enum
@@ -204,21 +283,18 @@ Move getMoveFromNotation(Board* b, char* moveStr) {
     
 
     setCapturedPiece(&m, capturedPiece);  // after castling because castling doesnt capture anything
-    if (piece == EMPTY) {
-        // this should not happen in a legal move, but we will allow it for now and let the application deal with it
-        return NULL_MOVE;
-    }
-
+    
     // check promo and colour
     if (len == 5) {
         char promo = moveStr[4];
         uint8_t promoType = getPieceType(getPieceFromChar(promo));
 
         if (promoType == 0) {
-            // invalid promotion piece, should not happen if we assume valid notation
+            // should not happen if we assume valid notation
             return NULL_MOVE;
         }
         
+        // not needed, right?
         if (blackToMove) {
             promoType += 6;  // convert to black piece
         }
@@ -248,7 +324,6 @@ Move getMoveFromNotation(Board* b, char* moveStr) {
         setDoublePush(&m, true);
     }
 
-    ///TODO: this causes a segfault for some reason
     if (dst == getEnPassantSquare(gamestate) && piece == WP && srcRank == '5' && dstRank == '6') {
         setEnPassant(&m, dst);
         setCapturedPiece(&m, BP);
@@ -641,17 +716,5 @@ void makeMove(Board* b, Move move) {
     updateBoardUnions(b);
     return;
 
-}
-
-Piece getPieceOnSquare(Board* b, Square sq) {
-    return b->pieces[sq];
-}
-
-// for now, play, check king, unmove
-bool isLegalMove(Board* b, Move move) {
-
-    (void) b;
-    (void) move;
-    return true;
 }
 

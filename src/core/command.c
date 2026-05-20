@@ -337,7 +337,7 @@ int cmd_moves(int argc, char** argv) {
     // idc about making this robust, -s has to come before the other guys, truly idc
 
     if (argc <= 1) {
-        printLegalMoves(game->board);
+        printLegalMoves(game->board, true);  ///TODO: define
         return 0;
     }
 
@@ -346,7 +346,7 @@ int cmd_moves(int argc, char** argv) {
     for (int i = 1; i < argc; i++) {
         if (strncmp(argv[i], "-pl", 3) == 0) {
             // print pseudo-legal moves
-            printPseudoLegalMoves(game->board, printSquare);
+            printPseudoLegalMoves(game->board, printSquare);   ///TODO: define
             return 0;
         }
 

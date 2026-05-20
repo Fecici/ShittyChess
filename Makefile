@@ -9,15 +9,16 @@ SRC = \
 	src/main.c \
 	src/cli/cli.c \
 	src/cli/ui.c \
-	src/core/command.c \
 	src/core/fen.c \
 	src/core/movegen.c \
 	src/core/move.c \
 	src/core/history.c \
+	src/core/legal.c \
 	src/core/parse.c \
 	src/util/bitUtils.c \
 	src/util/printUtils.c \
 	src/util/zobrist.c \
+	src/core/command.c \
 	src/engine/search.c \
 	src/engine/eval.c \
 	src/engine/engine.c

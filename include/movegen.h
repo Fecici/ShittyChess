@@ -22,26 +22,9 @@ uint64_t generateBlackQueenMoves(Board* b, Square src);
 uint64_t generateBlackKingMoves(Board* b, Square src);
 
 // indexed by getBitboardIndex(piece) (eg, iWP)
-(uint64_t*) pieceGenerator(Board* b, Square src)[12] = {
-    generateWhitePawnMoves,
-    generateWhiteKnightMoves,
-    generateWhiteBishopMoves,
-    generateWhiteRookMoves,
-    generateWhiteQueenMoves,
-    generateWhiteKingMoves,
-
-    generateBlackPawnMoves,
-    generateBlackKnightMoves,
-    generateBlackBishopMoves,
-    generateBlackRookMoves,
-    generateBlackQueenMoves,
-    generateBlackKingMoves
-};
+extern uint64_t (*const pieceGenerator[12]) (Board*, Square);
 
 // for precomp
-
-int directions[8][2] = {{1, 1}, {1, -1}, {-1, 1}, {-1, -1}, {1, 0}, {-1, 0}, {0, 1}, {0, -1}};  // bishops use 0-3 rook 4-7.
-
 void precomputeKnights();
 void precomputeKingMoves();
 
