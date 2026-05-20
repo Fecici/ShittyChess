@@ -185,30 +185,3 @@ bool pushUndo64ToStack(Board* b, Undo64 undo) {
     return true;
 }
 
-// this lives in history now because it needs to interact with Undo
-int handleMakeMove(Board* b, Move move) {
-    // idk what this will do, maybe it is a wrapper.
-    // check colour to move, check legality unless forced (we just set the pieces there then and go around this function entirely)
-    bool colourToMove = isBlackToMove(b->gamestate);
-    Piece piece = getPieceOnSquare(b, getSrc(move));
-    if (piece == EMPTY) {
-        fprintf(stderr, "Illegal move: no piece on source square\n");
-        return 1;
-    }
-
-    if (getPiecesColour(piece) != colourToMove) {
-        fprintf(stderr, "Illegal move: piece on source square does not match colour to move\n");
-        return 1;
-    }
-
-    if (!isLegalMove(b, move)) {
-        fprintf(stderr, "Illegal move: move is not legal in the current position\n");
-        return 1;
-    }
-
-    Undo64 undo = createUndo64(move, b->gamestate);
-    pushUndo64ToStack(b, undo);
-
-    makeMove(b, move);
-    return 0;
-}

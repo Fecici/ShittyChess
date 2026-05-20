@@ -4,7 +4,7 @@
 bool kingInCheck(Board* b, int blackToMove) {
     uint64_t opponentAttacks = 0;
 
-    uint64_t kingBitboard = b->bitboards[6 + 6 * blackToMove];  // get bitboard of the king of the side to move
+    uint64_t kingBitboard = b->bitboards[5 + 6 * blackToMove];  // get bitboard of the king of the side to move
 
     // or all attacks
     for (int i = 6 * blackToMove; i < 6 + 6 * blackToMove; i++) {
@@ -65,4 +65,35 @@ uint64_t getLegalFromPseudo(Board* b, uint64_t pesudoMoves, Square src) {
     }
 
     return legalMoves;
+}
+
+int handleMakeMove(Board* b, Move move) {
+    
+    // check colour to move, check legality unless forced (we just set the pieces there then and go around this function entirely)
+    bool colourToMove = isBlackToMove(b->gamestate);
+    Piece piece = getPieceOnSquare(b, getSrc(move));
+    if (piece == EMPTY) {
+        fprintf(stderr, "Illegal move: no piece on source square\n");
+        return 1;
+    }
+
+    if (getPiecesColour(piece) != colourToMove) {
+        fprintf(stderr, "Illegal move: piece on source square does not match colour to move\n");
+        return 1;
+    }
+
+    uint64_t moveMask = squareBitboards[getDst(move)];
+    uint64_t legal = pieceGenerator[getBitboardIndex(piece)](b, getSrc(move));
+    legal = getLegalFromPseudo(b, legal, getSrc(move));
+
+    if (!(legal & moveMask)) {
+        fprintf(stderr, "Illegal move: move is not legal in the current position\n");
+        return 1;
+    }
+
+    Undo64 undo = createUndo64(move, b->gamestate);
+    pushUndo64ToStack(b, undo);
+
+    makeMove(b, move);
+    return 0;
 }

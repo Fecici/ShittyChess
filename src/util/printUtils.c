@@ -56,7 +56,7 @@ void printHistory(Undo64* undoStack, unsigned int ply) {
         Square dst = getDst(move);
 
         // rough convert to alg notation
-        printf("%u. %c%d -> %c%d\n", getMoveCount(i), 'a' + src % 8, 8 - src / 8, 'a' + dst % 8, 8 - dst / 8);
+        printf("%u. %s -> %s\n", getMoveCount(i), squareChar[src], squareChar[dst]);
     }
 }
 
@@ -206,10 +206,13 @@ void printLegalMoves(Board* b, bool makeSquare) {
         uint64_t bitboard = b->bitboards[i];
         while (bitboard) {
             uint64_t k = bitboard & -bitboard;  // get least significant bit
-            uint8_t squareIndex = __builtin_ctzll(k);  // get index of least significant bit
+            Square squareIndex = (Square) __builtin_ctzll(k);  // get index of least significant bit
             uint64_t moves = pieceGenerator[i](b, squareIndex);  // get pseudo-legal moves for this piece on this square
             moves = getLegalFromPseudo(b, moves, squareIndex);  // filter pseudo-legal moves to legal moves
-            printBitBoard(moves, getPieceNameFromIndex(i), makeSquare);
+
+            char buffer[50];
+            snprintf(buffer, sizeof(buffer), "Legal moves for %s on square %s", getPieceNameFromIndex(i), squareChar[squareIndex]);
+            printBitBoard(moves, buffer, makeSquare);
             bitboard &= bitboard - 1;  // clear least significant bit
         }
     }
@@ -222,9 +225,11 @@ void printPseudoLegalMoves(Board* b, bool printSquare) {
         uint64_t bitboard = b->bitboards[i];
         while (bitboard) {
             uint64_t k = bitboard & -bitboard;  // get least significant bit
-            uint8_t squareIndex = __builtin_ctzll(k);  // get index of least significant bit
+            Square squareIndex = (Square) __builtin_ctzll(k);  // get index of least significant bit
             uint64_t moves = pieceGenerator[i](b, squareIndex);  // get pseudo-legal moves for this piece on this square
-            printBitBoard(moves, getPieceNameFromIndex(i), printSquare);
+            char buffer[50];
+            snprintf(buffer, sizeof(buffer), "Pseudo-legal moves for %s on square %s", getPieceNameFromIndex(i), squareChar[squareIndex]);
+            printBitBoard(moves, buffer, printSquare);
             bitboard &= bitboard - 1;  // clear least significant bit
         }
     }
@@ -244,7 +249,9 @@ void printLegalMovesFromSquare(Board* b, Square src, bool printSquare) {
 
     moves = getLegalFromPseudo(b, moves, src);
 
-    printBitBoard(moves, "Legal moves from square", printSquare);
+    char buffer[50];
+    snprintf(buffer, sizeof(buffer), "Legal moves from square %s", squareChar[src]);
+    printBitBoard(moves, buffer, printSquare);
 }
 
 void printLegalMovesForColour(Board* b, Colour colour, bool printSquare) {
@@ -253,10 +260,12 @@ void printLegalMovesForColour(Board* b, Colour colour, bool printSquare) {
         uint64_t bitboard = b->bitboards[i];
         while (bitboard) {
             uint64_t k = bitboard & -bitboard;  // get least significant bit
-            uint8_t squareIndex = __builtin_ctzll(k);  // get index of least significant bit
+            Square squareIndex = (Square) __builtin_ctzll(k);  // get index of least significant bit
             uint64_t moves = pieceGenerator[i](b, squareIndex);  // get pseudo-legal moves for this piece on this square
             moves = getLegalFromPseudo(b, moves, squareIndex);  // filter pseudo-legal moves to legal moves
-            printBitBoard(moves, getPieceNameFromIndex(i), printSquare);
+            char buffer[50];
+            snprintf(buffer, sizeof(buffer), "Legal moves for %s on square %s", getPieceNameFromIndex(i), squareChar[squareIndex]);
+            printBitBoard(moves, buffer, printSquare);
             bitboard &= bitboard - 1;  // clear least significant bit
         }
     }
@@ -270,10 +279,12 @@ void printLegalMovesForPiece(Board* b, Piece piece, bool printSquare) {
 
     while (bitboard) {
         uint64_t k = bitboard & -bitboard;  // get least significant bit
-        uint8_t squareIndex = __builtin_ctzll(k);  // get index of least significant bit
+        Square squareIndex = (Square) __builtin_ctzll(k);  // get index of least significant bit
         uint64_t moves = pieceGenerator[pieceIndex](b, squareIndex);  // get pseudo-legal moves for this piece on this square
         moves = getLegalFromPseudo(b, moves, squareIndex);  // filter pseudo-legal moves to legal moves
-        printBitBoard(moves, getPieceNameFromPiece(piece), printSquare);
+        char buffer[50];
+        snprintf(buffer, sizeof(buffer), "Legal moves for %s on square %s", getPieceNameFromPiece(piece), squareChar[squareIndex]);
+        printBitBoard(moves, buffer, printSquare);
         bitboard &= bitboard - 1;  // clear least significant bit
     }
 

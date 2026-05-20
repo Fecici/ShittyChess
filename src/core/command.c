@@ -4,11 +4,13 @@
 CommandAbstract cmds[] = {
     {.name = "help", .cmd = cmd_help},
     {.name = "undo", .cmd = cmd_undo},
+    {.name = "u", .cmd = cmd_undo},
     {.name = "move", .cmd = cmd_move},
     {.name = "m", .cmd = cmd_move},
     {.name = "perft", .cmd = cmd_perft},
     {.name = "children", .cmd = cmd_children},
     {.name = "quit", .cmd = cmd_quit},
+    {.name = "q", .cmd = cmd_quit},
     {.name = "exit", .cmd = cmd_quit},
     {.name = "resign", .cmd = cmd_resign},
     {.name = "fen", .cmd = cmd_fen},
@@ -341,7 +343,7 @@ int cmd_moves(int argc, char** argv) {
         return 0;
     }
 
-    bool printSquare = false;
+    bool printSquare = true;
 
     for (int i = 1; i < argc; i++) {
         if (strncmp(argv[i], "-pl", 3) == 0) {
@@ -375,8 +377,8 @@ int cmd_moves(int argc, char** argv) {
             return 0;
         }
 
-        if (strncmp(argv[i], "-s", 2) == 0) {
-            printSquare = true;
+        if (strncmp(argv[i], "-ns", 3) == 0) {
+            printSquare = false;
             continue;
         }
         if (strncmp(argv[i], "-p", 2) == 0) {
@@ -440,6 +442,8 @@ int cmd_checkers(int argc, char** argv) {
 
 int cmd_board(int argc, char** argv) {
     // for now
+
+    // need to rewrite this piece of shit lmao
 
     if (argc <= 1) {
         printBoard(game->board);

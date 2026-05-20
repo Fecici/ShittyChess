@@ -10,5 +10,7 @@ bool isLegalMove(Board* b, Move move);
 
 uint64_t getLegalFromPseudo(Board* b, uint64_t pesudoMoves, Square src);
 
+int handleMakeMove(Board* b, Move move);
+
 
 #endif

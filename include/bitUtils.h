@@ -252,8 +252,8 @@ static inline Undo64 createUndo64(Move move, Gamestate gamestate) {
 }
 
 static inline void getIJFromSquare(Square sq, int* i, int* j) {
-    *i = sq / 8;
-    *j = sq % 8;
+    *i = 7 - (int)sq / 8;
+    *j = (int)sq % 8;
 }
 
 static inline unsigned int getSquareIndex(const int i, const int j) {

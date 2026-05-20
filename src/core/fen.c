@@ -111,6 +111,7 @@ bool loadFromFen(Board* b, char* fen) {
     b->ply = fenPly;
 
     b->zobrist = generateZobristHash(b);
+    updateBoardUnions(b);
 
     return true;
 }

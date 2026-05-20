@@ -13,7 +13,6 @@ bool pushUndo64ToStack(Board* b, Undo64 undo);  // for speed
 
 // commands:
 int handleUndo(Board* b, Undo64 undo);
-int handleMakeMove(Board* b, Move move);
 
 void handlePerft(Board* b);
 void handleChildren(Board* b);
