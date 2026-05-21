@@ -289,3 +289,19 @@ void printLegalMovesForPiece(Board* b, Piece piece, bool printSquare) {
     }
 
 }
+
+
+void debug_kingGen() {
+    for (Square i = 0; i < 64; i++) {
+        char buf[50];
+        snprintf(buf, sizeof(buf), "King on %s\n", squareChar[i]);
+        printBitBoard(debug_getKingMove(i), buf, true);
+    }
+}
+void debug_knightGen() {
+    for (Square i = 0; i < 64; i++) {
+        char buf[50];
+        snprintf(buf, sizeof(buf), "Knight on %s\n", squareChar[i]);
+        printBitBoard(debug_getKnightMove(i), buf, true);
+    }
+}

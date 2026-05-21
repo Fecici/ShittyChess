@@ -28,4 +28,8 @@ extern uint64_t (*const pieceGenerator[12]) (Board*, Square);
 void precomputeKnights();
 void precomputeKingMoves();
 
+// debug
+uint64_t debug_getKingMove(Square src);
+uint64_t debug_getKnightMove(Square src);
+
 #endif

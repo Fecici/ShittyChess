@@ -65,6 +65,9 @@ int main(int argc, char** argv) {
     precomputeKnights();
     precomputeKingMoves();
 
+    debug_kingGen();
+    debug_knightGen();
+
     // init "clock"
 
     // init "players"

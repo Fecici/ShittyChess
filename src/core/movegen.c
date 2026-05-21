@@ -167,6 +167,14 @@ uint64_t generateWhiteKingMoves(Board* b, Square src) {
     return precomputedKingMoves[src] & ~b->boardUnions[WHITE];
 }
 
+uint64_t debug_getKingMove(Square src) {
+    return precomputedKingMoves[src];
+}
+
+uint64_t debug_getKnightMove(Square src) {
+    return precomputedKnightmoves[src];
+}
+
 uint64_t generateBlackPawnMoves(Board* b, Square src) {
     // blacks perspective
 
