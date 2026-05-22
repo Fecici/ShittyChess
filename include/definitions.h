@@ -30,7 +30,7 @@ static const Gamestate NULL_GAMESTATE = 0;
 static const Undo64 NULL_UNDO = 0;
 
 // who knows if ill use all of these, but some of them are useful
-static const uint64_t fileH = 0x0808080808080808;
+static const uint64_t fileH = 0x8080808080808080;
 static const uint64_t fileA = 0x0101010101010101;
 static const uint64_t rank1 = 0x00000000000000FF;
 static const uint64_t rank2 = 0x000000000000FF00;
@@ -40,6 +40,13 @@ static const uint64_t rank5 = 0x000000FF00000000;
 static const uint64_t rank6 = 0x0000FF0000000000;
 static const uint64_t rank7 = 0x00FF000000000000;
 static const uint64_t rank8 = 0xFF00000000000000;
+
+// squares that need to be empty for castling
+static const uint64_t bcd1  = 0x000000000000000E;
+static const uint64_t fg1   = 0x0000000000000060;  // for white
+
+static const uint64_t bcd8  = 0x0E00000000000000;  // for black
+static const uint64_t fg8   = 0x6000000000000000;
 
 // Move masks
 static const uint32_t castleMask        = 0x04000000;
@@ -54,6 +61,7 @@ static const uint32_t GS_castlingRightsMask  = 0x0000000F;
 static const uint32_t GS_enpassantSquareMask = 0x000003F0;
 static const uint32_t GS_halfmoveClockMask   = 0x0001FC00;
 static const uint32_t GS_colourtoMoveMask    = 0x00020000;
+
 
 static const uint8_t whiteLongCastleMask  = 0x1;
 static const uint8_t whiteShortCastleMask = 0x2;
@@ -259,7 +267,7 @@ static const uint64_t squareBitboards[64] = {
 };
 
 
-static const int victim_value[7] = {0, 100, 320, 330, 500, 900, 2000000000}; // 0, P, N, B, R, Q, K
+static const int victim_value[6] = {100, 320, 330, 500, 900, 2000000000}; // 0, P, N, B, R, Q, K
 
 // debug
 extern const char* testFens[];

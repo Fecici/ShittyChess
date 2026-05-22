@@ -7,6 +7,7 @@ CommandAbstract cmds[] = {
     {.name = "u", .cmd = cmd_undo},
     {.name = "move", .cmd = cmd_move},
     {.name = "m", .cmd = cmd_move},
+    {.name = "mv", .cmd = cmd_move},
     {.name = "perft", .cmd = cmd_perft},
     {.name = "children", .cmd = cmd_children},
     {.name = "quit", .cmd = cmd_quit},
@@ -92,14 +93,14 @@ int cmd_undo(int argc, char** argv) {
 
     Board* b = game->board;
     Undo64* stack = b->undoStack;
-    unsigned int ply = --b->ply;
+    unsigned int ply = b->ply;
 
-    if (ply < 0) {
+    if (ply <= 0) {
         fprintf(stderr, "Error: No moves to undo\n");
         return 1;
     }
 
-    Undo64 undo = stack[ply];
+    Undo64 undo = stack[--ply];
     if (argc <= 1) {
         
         // check that we can undo - would entail checking stack bounds pretty much

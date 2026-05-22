@@ -706,8 +706,9 @@ void makeMove(Board* b, Move move) {
     // pawn CAPTURES enpassant
     if (isEnPassant) {
         // remove captured pawn
-        bitboards[getBitboardIndex(capturedPiece)] ^= squareBitboards[epSquare];  // remove captured pawn from en passant square
-        pieces[epSquare + (blackToMove ? 8 : -8)] = EMPTY;  // remove captured pawn
+        Square captured = epSquare + (blackToMove ? 8 : -8);
+        bitboards[getBitboardIndex(capturedPiece)] ^= squareBitboards[captured] | dstMask;  // remove captured pawn from en passant square and undo prev capture remove
+        pieces[captured] = EMPTY;  // remove captured pawn
         b->zobrist ^= getZobristHash(capturedPiece, epSquare);  // remove captured pawn from en passant zobrist
         // src and dst toggle already happens
     }

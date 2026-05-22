@@ -34,7 +34,7 @@ void performUndo(Board* b, Undo64 undo) {
     Square src = getSrc(move);
     Square dst = getDst(move);
     Piece capturedPiece = getCapturedPiece(move);  // can get from Move
-    Piece srcPiece = getPieceOnSquare(b, dst);  // since we are undoing, the piece on the destination square is the piece that moved
+    Piece srcPiece = getPieceOnSquare(b, dst);  // since we are undoing, the piece on the destination square is the piece that moved unless its promo
     Square epSquare = getEnPassant(move);
     uint64_t srcMask = squareBitboards[src];
     uint64_t dstMask = squareBitboards[dst];
@@ -113,12 +113,13 @@ void performUndo(Board* b, Undo64 undo) {
 
     uint8_t promo = getPromotion(move);
     if (promo) {
+        Piece promoPiece = srcPiece;  // this is what was on dst at first
         uint8_t black = getPiecesColour(srcPiece) << 3;
-        Piece promoPiece = black | promo;
-        bitboards[getBitboardIndex(promoPiece)] ^= dstMask;  // remove promotion piece from destination square
-        bitboards[getBitboardIndex(srcPiece)] ^= dstMask;  // remove pawn from destination square again (we or'd it above)
+        srcPiece = (Piece) PAWN | black;
+        bitboards[getBitboardIndex(promoPiece)] ^= srcMask;  // remove promotion piece from src square (or'd above)
+        bitboards[getBitboardIndex(srcPiece)] ^= srcMask;    // pawn is restored, does not happen above because srcPiece is only known here
         pieces[dst] = capturedPiece;  // restore captured piece to destination square
-        pieces[src] = (Piece) PAWN | black;  // program only looks at dst square in general, which is not a pawn ever
+        pieces[src] = srcPiece;  // program only looks at dst square in general, which is not a pawn ever
         b->zobrist ^= getZobristHash(promoPiece, dst);  // remove promotion piece from destination square
         // does more zobrist need to happen? idk
         goto finishUndo;  // enpassant never happens
@@ -128,7 +129,7 @@ void performUndo(Board* b, Undo64 undo) {
     if (epSquare) {
         bool blackToMove = isBlackToMove(b->gamestate);
         Piece epCapturedPiece = blackToMove ? WP : BP;  // because if the piece that moved is black, the captured piece must be a white pawn
-        bitboards[getBitboardIndex(epCapturedPiece)] ^= squareBitboards[epSquare + (blackToMove ? 8 : -8)];  // add captured pawn to en passant square
+        bitboards[getBitboardIndex(epCapturedPiece)] ^= (squareBitboards[epSquare + (blackToMove ? 8 : -8)] | dstMask);  // add captured pawn to en passant square and remove restore from normal capture block
         pieces[epSquare + (blackToMove ? 8 : -8)] = epCapturedPiece;  // place the captured pawn back
         b->zobrist ^= getZobristHash(epCapturedPiece, epSquare);  // add captured pawn to en passant square
         b->zobrist ^= getZobristEnPassantHash(epSquare & 7);  // update en passant hash, & 7 is to get file of epSquare

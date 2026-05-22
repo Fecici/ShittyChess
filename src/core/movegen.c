@@ -90,7 +90,12 @@ uint64_t generateWhiteBishopMoves(Board* b, Square src) {
         while (x + dx >= 0 && x + dx < 8 && y + dy >= 0 && y + dy < 8) {
             Square targetSquare = getSquareIndex(y + dy, x + dx);
 
-            if (b->boardUnions[0] & squareBitboards[targetSquare]) {  // if there is a piece on the target square, stop looking in this direction
+            if (b->boardUnions[WHITE] & squareBitboards[targetSquare]) {  // if there is a piece on the target square, stop looking in this direction
+                break;
+            }
+
+            if (b->boardUnions[BLACK] & squareBitboards[targetSquare]) {
+                moves |= squareBitboards[targetSquare];
                 break;
             }
             moves |= squareBitboards[targetSquare];  // add move to bitboard
@@ -119,7 +124,11 @@ uint64_t generateWhiteRookMoves(Board* b, Square src) {
         while (x + dx >= 0 && x + dx < 8 && y + dy >= 0 && y + dy < 8) {
             Square targetSquare = getSquareIndex(y + dy, x + dx);
             
-            if (b->boardUnions[0] & squareBitboards[targetSquare]) {  // if there is a piece on the target square, stop looking in this direction
+            if (b->boardUnions[WHITE] & squareBitboards[targetSquare]) {  // if there is a piece on the target square, stop looking in this direction
+                break;
+            }
+            if (b->boardUnions[BLACK] & squareBitboards[targetSquare]) {
+                moves |= squareBitboards[targetSquare];
                 break;
             }
             moves |= squareBitboards[targetSquare];  // add move to bitboard
@@ -149,7 +158,11 @@ uint64_t generateWhiteQueenMoves(Board* b, Square src) {
         while (x + dx >= 0 && x + dx < 8 && y + dy >= 0 && y + dy < 8) {
             Square targetSquare = getSquareIndex(y + dy, x + dx);
             
-            if (b->boardUnions[0] & squareBitboards[targetSquare]) {  // if there is a piece on the target square, stop looking in this direction
+            if (b->boardUnions[WHITE] & squareBitboards[targetSquare]) {  // if there is a piece on the target square, stop looking in this direction
+                break;
+            }
+            if (b->boardUnions[BLACK] & squareBitboards[targetSquare]) {
+                moves |= squareBitboards[targetSquare];
                 break;
             }
             moves |= squareBitboards[targetSquare];  // add move to bitboard
@@ -164,7 +177,15 @@ uint64_t generateWhiteQueenMoves(Board* b, Square src) {
 
 uint64_t generateWhiteKingMoves(Board* b, Square src) {
 
-    return precomputedKingMoves[src] & ~b->boardUnions[WHITE];
+    uint64_t moves = precomputedKingMoves[src];
+    if (src == e1) {
+        Gamestate gamestate = b->gamestate;
+        uint64_t emptySquares = ~b->boardUnions[2];
+        if (canWhiteCastleShort(gamestate) && (emptySquares & fg1 )) moves |= squareBitboards[g1];
+        if (canWhiteCastleLong (gamestate) && (emptySquares & bcd1)) moves |= squareBitboards[c1];
+    }
+
+    return moves & ~b->boardUnions[WHITE];
 }
 
 uint64_t debug_getKingMove(Square src) {
@@ -237,7 +258,12 @@ uint64_t generateBlackBishopMoves(Board* b, Square src) {
         while (x + dx >= 0 && x + dx < 8 && y + dy >= 0 && y + dy < 8) {
             Square targetSquare = getSquareIndex(y + dy, x + dx);
             
-            if (b->boardUnions[1] & squareBitboards[targetSquare]) {  // if there is a piece on the target square, stop looking in this direction
+            if (b->boardUnions[BLACK] & squareBitboards[targetSquare]) {  // if there is a piece on the target square, stop looking in this direction
+                break;
+            }
+
+            if (b->boardUnions[WHITE] & squareBitboards[targetSquare]) {
+                moves |= squareBitboards[targetSquare];
                 break;
             }
             moves |= squareBitboards[targetSquare];  // add move to bitboard
@@ -266,7 +292,11 @@ uint64_t generateBlackRookMoves(Board* b, Square src) {
         while (x + dx >= 0 && x + dx < 8 && y + dy >= 0 && y + dy < 8) {
             Square targetSquare = getSquareIndex(y + dy, x + dx);
             
-            if (b->boardUnions[1] & squareBitboards[targetSquare]) {  // if there is a piece on the target square, stop looking in this direction
+            if (b->boardUnions[BLACK] & squareBitboards[targetSquare]) {  // if there is a piece on the target square, stop looking in this direction
+                break;
+            }
+            if (b->boardUnions[WHITE] & squareBitboards[targetSquare]) {
+                moves |= squareBitboards[targetSquare];
                 break;
             }
             moves |= squareBitboards[targetSquare];  // add move to bitboard
@@ -295,7 +325,11 @@ uint64_t generateBlackQueenMoves(Board* b, Square src) {
         while (x + dx >= 0 && x + dx < 8 && y + dy >= 0 && y + dy < 8) {
             Square targetSquare = getSquareIndex(y + dy, x + dx);
             
-            if (b->boardUnions[1] & squareBitboards[targetSquare]) {  // if there is a piece on the target square, stop looking in this direction
+            if (b->boardUnions[BLACK] & squareBitboards[targetSquare]) {  // if there is a piece on the target square, stop looking in this direction
+                break;
+            }
+            if (b->boardUnions[WHITE] & squareBitboards[targetSquare]) {
+                moves |= squareBitboards[targetSquare];
                 break;
             }
             moves |= squareBitboards[targetSquare];  // add move to bitboard
@@ -310,7 +344,15 @@ uint64_t generateBlackQueenMoves(Board* b, Square src) {
 
 uint64_t generateBlackKingMoves(Board* b, Square src) {
     
-    return precomputedKingMoves[src] & ~b->boardUnions[BLACK];
+    uint64_t moves = precomputedKingMoves[src];
+    if (src == e8) {
+        Gamestate gamestate = b->gamestate;
+        uint64_t emptySquares = ~b->boardUnions[2];
+        if (canBlackCastleShort(gamestate) && (emptySquares & fg8 )) moves |= squareBitboards[g8];
+        if (canBlackCastleLong (gamestate) && (emptySquares & bcd8)) moves |= squareBitboards[c8];
+    }
+
+    return moves & ~b->boardUnions[BLACK];
 }
 
 void precomputeKnights() {
