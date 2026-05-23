@@ -244,7 +244,7 @@ Move getMoveFromNotation(Board* b, char* moveStr) {
     // get piecetype from bitboard, check captured piece, set enpassant, castling, and double
     // this is a cli program. speed is not an issue here.
     Gamestate gamestate = b->gamestate; 
-    bool blackToMove = isBlackToMove(gamestate);
+    bool blackToMove    = isBlackToMove(gamestate);
     Piece piece         = getPieceOnSquare(b, src);
 
     if (piece == EMPTY) {
