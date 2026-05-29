@@ -130,7 +130,7 @@ typedef struct {
     uint64_t bitboards[12];   // stores all bitboards, indexed by iCT for Colour, Type = CT
     uint64_t boardUnions[3];  // eg all white, all black, all pieces - "blockers"
     uint64_t zobrist;  // updated incrementally each move or undo via xor
-    Undo64   undoStack[MAX_PLY];
+    Undo64   undoStack[MAX_PLY];  // indexed by ply
 
     // gameState format:
     // _ _ _ _ _ _ _ _ | _ _ _ _ _ _ T H | H H H H H H E E | E E E E C C C C 

@@ -96,11 +96,11 @@ int cmd_undo(int argc, char** argv) {
     unsigned int ply = b->ply;
 
     if (ply <= 0) {
-        fprintf(stderr, "Error: No moves to undo\n");
+        fprintf(stderr, "No moves to undo\n");
         return 1;
     }
 
-    Undo64 undo = stack[--ply];
+    Undo64 undo = stack[--b->ply];
     if (argc <= 1) {
         
         // check that we can undo - would entail checking stack bounds pretty much

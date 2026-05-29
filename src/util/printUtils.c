@@ -69,6 +69,7 @@ void printGameState(Board* b, bool makeSquare) {
     printf("Colour to move: %s\n", isBlackToMove(b->gamestate) ? "Black" : "White");
     printf("Halfmove clock: %u\n", getHalfmoveClock(b->gamestate));
     printf("En passant square: %u\n", getEnPassantSquare(b->gamestate));
+    printf("Current Ply: %d\n", b->ply);
     printf("Castling rights: %x | BLACK SHORT %x | BLACK LONG %x | WHITE SHORT %x | WHITE LONG %x\n", 
         getCastlingRights(b->gamestate), 
         canBlackCastleShort(b->gamestate) ? 1 : 0,
