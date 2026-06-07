@@ -142,7 +142,7 @@ void printMove(Move move) {
 
 }
 
-Move getMoveFromSquare(Board* b, Square src, Square dst, bool promo) {
+Move getMoveFromSquare(Board* b, Square src, Square dst, uint8_t promo) {
     Move m = NULL_MOVE;
     setSrc(&m, src);
     setDst(&m, dst);
@@ -179,9 +179,8 @@ Move getMoveFromSquare(Board* b, Square src, Square dst, bool promo) {
     setCapturedPiece(&m, capturedPiece);
 
     if (promo) {
-        // the type of promo does not matter. We use queen because we still must undo later,
-        // but we only check at most 3 promo squares.
-        setPromotion(&m, promoQueen);
+        // all functions using this need to supply it with its own type for its own purposes
+        setPromotion(&m, promo);
         return m;
     }
 
@@ -718,4 +717,3 @@ void makeMove(Board* b, Move move) {
     return;
 
 }
-

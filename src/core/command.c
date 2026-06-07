@@ -238,9 +238,45 @@ int cmd_move(int argc, char** argv) {
 
 int cmd_perft(int argc, char** argv) {
 
-    (void) argc;
-    (void) argv;
+    // get -n for depth, default 3 full moves
+    // -i for iterative deepening, 
+    int depth = 6;
+    for (int i = 1; i < argc; i++) {
+        if (strncmp(argv[i], "-n", 2) == 0) {
+            if (i + 1 < argc) {
+                depth = strtol(argv[++i], NULL, 10);
+                if (depth <= 0 || depth > MAX_DEPTH) {
+                    fprintf(stderr, "Error: Invalid depth: %d\n", depth);
+                    return 1;
+                }
 
+                perft_wrapper(game->board, depth);
+                return 0;
+
+            } else {
+                fprintf(stderr, "Error: -n option requires a depth argument\n");
+                return 1;
+            }
+        }
+
+        if (strncmp(argv[i], "-i", 2) == 0) {
+            if (i + 1 < argc) {
+                depth = strtol(argv[++i], NULL, 10);
+                if (depth <= 0 || depth > MAX_DEPTH) {
+                    fprintf(stderr, "Error: Invalid depth: %d\n", depth);
+                    return 1;
+                }
+
+            } else {
+                fprintf(stderr, "Error: -i option requires a depth argument\n");
+                return 1;
+            }
+            perft_iterativeDeepening(game->board, depth);
+            return 0;
+        }
+    }
+
+    perft_wrapper(game->board, depth);
     return 0;
 }
 

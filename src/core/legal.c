@@ -1,11 +1,8 @@
 #include "legal.h"
 
-
-bool kingInCheck(Board* b, Colour blackToMove) {
-    uint64_t opponentAttacks = 0;
-    PieceIndex index = (blackToMove) ? iBK : iWK;
+uint64_t opponentAttacks(Board* b, Colour blackToMove) {
+    uint64_t enemyTargets = 0;
     Colour enemyColour = BLACK - blackToMove;
-    uint64_t kingBitboard = b->bitboards[index];  // get bitboard of the king of the side to move
 
     // or all attacks
     // need the opposite side of the king's colour
@@ -17,11 +14,33 @@ bool kingInCheck(Board* b, Colour blackToMove) {
 
             Square src = (Square) __builtin_ctzll(moveMask);  // get source square
 
-            opponentAttacks |= pieceGenerator[i](b, src);  // add attacks from this piece to opponentAttacks
+            enemyTargets |= attackGenerator[i](b, src);  // add attacks from this piece to enemyTargets
         }
     }
 
-    return kingBitboard & opponentAttacks;
+    return enemyTargets;
+}
+
+bool kingInCheck(Board* b, Colour blackToMove, uint64_t enemyTargets) {
+    uint64_t kingBitboard = b->bitboards[(blackToMove == WHITE) ? iWK : iBK];
+
+    return kingBitboard & enemyTargets;
+}
+
+bool castleShortInCheck(Board* b, Colour blackToMove, uint64_t enemyTargets) {
+    if (blackToMove == WHITE) {
+        return (squareBitboards[e1] | squareBitboards[f1] | squareBitboards[g1]) & enemyTargets;
+    } else {
+        return (squareBitboards[e8] | squareBitboards[f8] | squareBitboards[g8]) & enemyTargets;
+    }
+}
+
+bool castleLongInCheck(Board* b, Colour blackToMove, uint64_t enemyTargets) {
+    if (blackToMove == WHITE) {
+        return (squareBitboards[e1] | squareBitboards[d1] | squareBitboards[c1]) & enemyTargets;
+    } else {
+        return (squareBitboards[e8] | squareBitboards[d8] | squareBitboards[c8]) & enemyTargets;
+    }
 }
 
 // for now, play, check king, unmove
@@ -32,10 +51,35 @@ bool isLegalMove(Board* b, Move move) {
     bool blackToMove = isBlackToMove(gamestate);
 
     Undo64 undo = createUndo64(move, gamestate);
+    
+    uint64_t enemyTargets = opponentAttacks(b, blackToMove);
+
+    if (isCastled(move)) {
+        if (blackToMove) {
+            if (getDst(move) == g8 && castleShortInCheck(b, blackToMove, enemyTargets)) {
+                return false;
+            }
+            if (getDst(move) == c8 && castleLongInCheck(b, blackToMove, enemyTargets)) {
+                return false;
+            }
+        } 
+        else {
+            if (getDst(move) == g1 && castleShortInCheck(b, blackToMove, enemyTargets)) {
+                return false;
+            }
+            
+            if (getDst(move) == c1 && castleLongInCheck(b, blackToMove, enemyTargets)) {
+                return false;
+            }
+        }
+    }
+
     makeMove(b, move);  // now white to move after this if black before
 
     // check if the king is in check after the move
-    if (kingInCheck(b, blackToMove ? BLACK : WHITE)) {
+    // needs to be done again
+    enemyTargets = opponentAttacks(b, blackToMove);
+    if (kingInCheck(b, blackToMove ? BLACK : WHITE, enemyTargets)) {
         // revert the move
         performUndo(b, undo);
         return false;
@@ -50,7 +94,7 @@ uint64_t getLegalFromPseudo(Board* b, uint64_t pseudoMoves, Square src) {
 
     uint64_t legalMoves = 0;
     Piece piece = b->pieces[src];
-    bool promo = ((piece == WP && squareBitboards[src] & rank7) || (piece == BP && squareBitboards[src] & rank2)) ? true : false;  // for now, we will not generate promo moves, so this is just a placeholder. we can set this to the correct promo type when we implement promo move generation
+    uint8_t promo = ((piece == WP && squareBitboards[src] & rank7) || (piece == BP && squareBitboards[src] & rank2)) ? promoQueen : 0;  // for now, we will not generate promo moves, so this is just a placeholder. we can set this to the correct promo type when we implement promo move generation
 
     // play each move (each bit) and or it to 0 if legal
     while (pseudoMoves) {
@@ -98,4 +142,48 @@ int handleMakeMove(Board* b, Move move) {
 
     makeMove(b, move);
     return 0;
+}
+
+
+Move* generate_moves(Board* b) {
+    // this is the main movegen function that will be called by the search and perft functions. it will call the piece specific movegen functions and return a list of moves.
+
+    Move* move_list = calloc(MAX_MOVES, sizeof(Move));
+    int move_count = 0;
+
+    Colour us = getColourToMove(b->gamestate);
+    Colour them = (us == WHITE) ? BLACK : WHITE;
+
+    // loop through pieces of the active colour, generate moves for each piece, add to move list
+    for (int piece_index = 0; piece_index < 6; piece_index++) {
+        uint64_t pieces = b->bitboards[(us == WHITE) ? piece_index : piece_index + 6];
+        while (pieces) {
+            Square src = (Square) __builtin_ctzll(pieces);
+            uint64_t moves = pieceGenerator[(us == WHITE) ? piece_index : piece_index + 6](b, src);
+
+            bool promo = ((b->pieces[src] == WP && squareBitboards[src] & rank7) || (b->pieces[src] == BP && squareBitboards[src] & rank2)) ? true : false;
+            // sanitize legal
+            moves = getLegalFromPseudo(b, moves, src);
+            // convert moves bitboard to move list entries
+            while (moves) {
+                Square dst = (Square) __builtin_ctzll(moves);
+                if (promo) {
+                    move_list[move_count++] = getMoveFromSquare(b, src, dst, promoQueen);
+                    move_list[move_count++] = getMoveFromSquare(b, src, dst, promoKnight);
+                    move_list[move_count++] = getMoveFromSquare(b, src, dst, promoBishop);
+                    move_list[move_count++] = getMoveFromSquare(b, src, dst, promoRook);
+
+
+                    moves &= moves - 1;
+                    continue;
+                }
+                move_list[move_count++] = getMoveFromSquare(b, src, dst, 0);
+                moves &= moves - 1;
+            }
+
+            pieces &= pieces - 1;
+        }
+    }
+
+    return move_list;
 }

@@ -21,9 +21,16 @@ uint64_t generateBlackRookMoves(Board* b, Square src);
 uint64_t generateBlackQueenMoves(Board* b, Square src);
 uint64_t generateBlackKingMoves(Board* b, Square src);
 
+
+
+uint64_t generateWhitePawnAttacks(Board* b, Square src);
+uint64_t generateBlackPawnAttacks(Board* b, Square src);
+uint64_t generateWhiteKingAttacks(Board* b, Square src);
+uint64_t generateBlackKingAttacks(Board* b, Square src);
+
 // indexed by getBitboardIndex(piece) (eg, iWP)
 extern uint64_t (*const pieceGenerator[12]) (Board*, Square);
-
+extern uint64_t (*const attackGenerator[12]) (Board*, Square);
 // for precomp
 void precomputeKnights();
 void precomputeKingMoves();

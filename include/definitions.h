@@ -8,10 +8,12 @@
 #include <stdbool.h>
 #include <string.h>
 #include <ctype.h>
+#include <time.h>
 
 // MACROS AND DEFS
 #define MAX_PLY 0x7FFF
 #define MAX_DEPTH 256
+#define MAX_MOVES 256  // max from starting pos is 218
 
 // promo needs 3 bits instead of 2, since the third will represent whether or not a promo actually happened
 //                                        v----- double pawn push (need more bits? no we have what we need)
@@ -45,8 +47,22 @@ static const uint64_t rank8 = 0xFF00000000000000;
 static const uint64_t bcd1  = 0x000000000000000E;
 static const uint64_t fg1   = 0x0000000000000060;  // for white
 
+static const uint64_t f1_mask = 0x0000000000000020;
+static const uint64_t g1_mask = 0x0000000000000040;
+
+static const uint64_t b1_mask = 0x0000000000000002;
+static const uint64_t c1_mask = 0x0000000000000004;
+static const uint64_t d1_mask = 0x0000000000000008;
+
 static const uint64_t bcd8  = 0x0E00000000000000;  // for black
 static const uint64_t fg8   = 0x6000000000000000;
+
+static const uint64_t f8_mask = 0x2000000000000000;
+static const uint64_t g8_mask = 0x4000000000000000;
+
+static const uint64_t b8_mask = 0x0200000000000000;
+static const uint64_t c8_mask = 0x0400000000000000;
+static const uint64_t d8_mask = 0x0800000000000000;
 
 // Move masks
 static const uint32_t castleMask        = 0x04000000;
@@ -272,5 +288,7 @@ static const int victim_value[6] = {100, 320, 330, 500, 900, 2000000000}; // 0, 
 // debug
 extern const char* testFens[];
 extern int sizeOfTestFens;
+
+#define DEBUG 1
 
 #endif

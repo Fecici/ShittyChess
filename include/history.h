@@ -7,6 +7,7 @@
 //Undo* getUndoFromMove(Board* b, Move move);
 
 void performUndo(Board* b, Undo64 undo);
+void unmove(Board* b, Move move);  // makes undo inside
 
 //bool pushUndoToStack(Board* b, Undo* undo);     // old
 bool pushUndo64ToStack(Board* b, Undo64 undo);  // for speed

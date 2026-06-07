@@ -15,7 +15,7 @@ static inline Piece getPieceOnSquare(Board* b, Square sq) {
 
 Move getMoveFromAlgebra(Board* b, char* moveStr);
 Move getMoveFromNotation(Board* b, char* moveStr);
-Move getMoveFromSquare(Board* b, Square src, Square dst, bool promo);
+Move getMoveFromSquare(Board* b, Square src, Square dst, uint8_t promo);
 bool validMoveNotation(char* moveStr);
 bool validAlgebraicNotation(char* moveStr);
 

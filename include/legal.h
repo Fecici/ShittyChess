@@ -12,5 +12,6 @@ uint64_t getLegalFromPseudo(Board* b, uint64_t pesudoMoves, Square src);
 
 int handleMakeMove(Board* b, Move move);
 
+Move* generate_moves(Board* b);
 
 #endif

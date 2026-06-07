@@ -5,8 +5,13 @@
 #include "bitUtils.h"
 #include "definitions.h"
 #include "move.h"
+#include "movegen.h"
+#include "history.h"
+#include "legal.h"
 
-int perft(Board* b, int depth);
+uint64_t perft(Board* b, int depth);
+void perft_wrapper(Board* b, int depth);
+void perft_iterativeDeepening(Board* b, int maxDepth);
 
 // cmds
 void handlePerft(Board* b);

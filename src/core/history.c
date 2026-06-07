@@ -142,6 +142,11 @@ void performUndo(Board* b, Undo64 undo) {
 
 }
 
+void unmove(Board* b, Move move) {
+    Undo64 undo = createUndo64(move, b->gamestate);
+    performUndo(b, undo);
+}
+
 // commands:
 int handleUndo(Board* b, Undo64 undo) {
 
