@@ -92,25 +92,25 @@ static const uint8_t promoQueen  = 0x7;
 
 // stuff here stores data to make undoing trivial
 // REPLACE WITH UINT64_T FOR SPEED
-typedef struct {
-    uint64_t zobrist;
-    uint8_t captured;
-    uint8_t enpassant;
-    uint8_t castling_rights;
-    uint8_t halftime;  // 50 move thing
+// typedef struct {
+//     uint64_t zobrist;
+//     uint8_t captured;
+//     uint8_t enpassant;
+//     uint8_t castling_rights;
+//     uint8_t halftime;  // 50 move thing
 
-} Undo;
+// } Undo;
 
 // these update in parallel. undo holds metadata for easy undo of boards
-typedef struct {
+// typedef struct {
 
-    uint64_t hashHistory[MAX_PLY];  // needed? undo hash is just xor again, g^2 = 0
-    Move moveHistory[MAX_PLY];
-    Undo undoHistory[MAX_PLY];
-    Gamestate gamestateHistory[MAX_PLY];
-    uint8_t ply;
+//     uint64_t hashHistory[MAX_PLY];  // needed? undo hash is just xor again, g^2 = 0
+//     Move moveHistory[MAX_PLY];
+//     Undo undoHistory[MAX_PLY];
+//     Gamestate gamestateHistory[MAX_PLY];
+//     uint8_t ply;
     
-} History;
+// } History;
 
 typedef enum {
     EMPTY,      // no piece
@@ -157,6 +157,7 @@ typedef struct {
     // castling rights: _ _ _ _ | black short, black long, white short, white long
 
     Gamestate gamestate;
+    unsigned int fenPly; // separate stack ply from game ply
     unsigned int ply;  // 0 initially. >> 1 to get full move clock. 
 } Board;
 
@@ -283,7 +284,7 @@ static const uint64_t squareBitboards[64] = {
 };
 
 
-static const int victim_value[6] = {100, 320, 330, 500, 900, 2000000000}; // 0, P, N, B, R, Q, K
+static const int victim_value[6] = {100, 320, 330, 500, 900, 2000000000}; // P, N, B, R, Q, K
 
 // debug
 extern const char* testFens[];

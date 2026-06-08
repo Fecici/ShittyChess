@@ -7,7 +7,7 @@
 #include "movegen.h"
 
 void makeMove(Board* b, Move move);
-Move getMoveFromHex(char* hexStr);
+//Move getMoveFromHex(char* hexStr);
 bool isLegalMove(Board* b, Move move);
 static inline Piece getPieceOnSquare(Board* b, Square sq) {
     return b->pieces[sq];

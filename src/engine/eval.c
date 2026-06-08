@@ -12,8 +12,10 @@ int evaluateBoard(Board* b) {
         uint64_t bitboard = b->bitboards[i];
         while (bitboard) {
             //int square = __builtin_ctzll(bitboard);  // get index of least significant bit
-            eval += (victim_value[i] * (i < 6 ? 1 : -1));  // add value for white pieces, subtract for black pieces
+            eval += (victim_value[i % 6] * (i < 6 ? 1 : -1));  // add value for white pieces, subtract for black pieces
             bitboard &= bitboard - 1;  // clear least significant bit
+
+            // Using __builtin_popcountll(bitboard) * value is simpler and faster than clearing every bit individually
         }
     }
 

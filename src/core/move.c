@@ -286,23 +286,12 @@ Move getMoveFromNotation(Board* b, char* moveStr) {
     // check promo and colour
     if (len == 5) {
         char promo = moveStr[4];
-        uint8_t promoType = getPieceType(getPieceFromChar(promo));
-
-        if (promoType == 0) {
-            // should not happen if we assume valid notation
-            return NULL_MOVE;
-        }
-        
-        // not needed, right?
-        if (blackToMove) {
-            promoType += 6;  // convert to black piece
-        }
-
-        switch (promoType) {
-            case WN: case BN: promoType = promoKnight; break;
-            case WB: case BB: promoType = promoBishop; break;
-            case WR: case BR: promoType = promoRook; break;
-            case WQ: case BQ: promoType = promoQueen; break;
+        uint8_t promoType;
+        switch (promo) {
+            case 'n': case 'N': promoType = promoKnight; break;
+            case 'b': case 'B': promoType = promoBishop; break;
+            case 'r': case 'R': promoType = promoRook; break;
+            case 'q': case 'Q': promoType = promoQueen; break;
             default:
                 // invalid promotion piece type, should not happen if we assume valid notation
                 return NULL_MOVE;
@@ -521,17 +510,17 @@ Move getMoveFromAlgebra(Board* b, char* moveStr) {
     return m;
 }
 
-Move getMoveFromHex(char* hexStr) {
+// Move getMoveFromHex(char* hexStr) {
 
 
-    Move m = (Move) strtol(hexStr, NULL, 0);
-    Board b = {0};  // test board
-    if (!isLegalMove(&b, m)) {
-        fprintf(stderr, "Invalid move hex: %s\n", hexStr);
-        return 0;
-    }
-    return m;
-}
+//     Move m = (Move) strtol(hexStr, NULL, 0);
+//     Board b = {0};  // test board
+//     if (!isLegalMove(&b, m)) {
+//         fprintf(stderr, "Invalid move hex: %s\n", hexStr);
+//         return 0;
+//     }
+//     return m;
+// }
 
 void makeMove(Board* b, Move move) {
 

@@ -163,15 +163,15 @@ int cmd_move(int argc, char** argv) {
             visual = true;
         }
 
-        else if (strncmp(argv[i], "-m", 2) == 0) {
-            char* mvHex = argv[++i];
-            // 
-            mv = getMoveFromHex(mvHex);
-            if (mv == NULL_MOVE) {
-                fprintf(stderr, "Error: Invalid move hex: %s\n", mvHex);
-                return 1;
-            }
-        }
+        // else if (strncmp(argv[i], "-m", 2) == 0) {
+        //     char* mvHex = argv[++i];
+        //     // 
+        //     mv = getMoveFromHex(mvHex);
+        //     if (mv == NULL_MOVE) {
+        //         fprintf(stderr, "Error: Invalid move hex: %s\n", mvHex);
+        //         return 1;
+        //     }
+        // }
     }
 
     // move is given via -m

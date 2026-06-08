@@ -43,8 +43,10 @@ bool castleLongInCheck(Board* b, Colour blackToMove, uint64_t enemyTargets) {
     }
 }
 
-// for now, play, check king, unmove
 bool isLegalMove(Board* b, Move move) {
+    // for now, play, check king, unmove
+
+    // better: make an isSquareAttacked function that can return early
 
     Gamestate gamestate = b->gamestate;
 
@@ -52,9 +54,9 @@ bool isLegalMove(Board* b, Move move) {
 
     Undo64 undo = createUndo64(move, gamestate);
     
-    uint64_t enemyTargets = opponentAttacks(b, blackToMove);
-
+    uint64_t enemyTargets;
     if (isCastled(move)) {
+        enemyTargets = opponentAttacks(b, blackToMove);
         if (blackToMove) {
             if (getDst(move) == g8 && castleShortInCheck(b, blackToMove, enemyTargets)) {
                 return false;
@@ -145,10 +147,14 @@ int handleMakeMove(Board* b, Move move) {
 }
 
 
-Move* generate_moves(Board* b) {
+void generate_moves(Board* b, Move* move_list) {
     // this is the main movegen function that will be called by the search and perft functions. it will call the piece specific movegen functions and return a list of moves.
 
-    Move* move_list = calloc(MAX_MOVES, sizeof(Move));
+    // for (int i = 0; i < MAX_MOVES; i++) {
+    //     move_list[i] = NULL_MOVE;
+    // }  // already done
+    // loop through pieces of the active colour, generate moves for each piece, add to move list
+    
     int move_count = 0;
 
     Colour us = getColourToMove(b->gamestate);
@@ -185,5 +191,5 @@ Move* generate_moves(Board* b) {
         }
     }
 
-    return move_list;
+    //return move_list;
 }

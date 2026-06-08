@@ -8,8 +8,14 @@ uint64_t perft(Board* b, int depth) {
     }
 
     uint64_t count = 0;
-
-    Move* move_list = generate_moves(b);
+    Move move_list[MAX_MOVES] = {0};
+    generate_moves(b, move_list);
+    // better method:
+    // generate pseudo
+    // save undo
+    // play pseudo
+    // if pseudo was legal, recurse.
+    // undo.
     int i = 0;
     while (move_list[i] != NULL_MOVE) {
         Move move = move_list[i++];
@@ -19,12 +25,13 @@ uint64_t perft(Board* b, int depth) {
         performUndo(b, undo);
     }
 
-    free(move_list);
-
     return count;
 }
 
 void perft_wrapper(Board* b, int depth) {
+
+    // lets also print divides for each child of the pos, eg e2e4: 20, ...
+
     clock_t start = clock();
     uint64_t nodes = perft(b, depth);
     clock_t end = clock();

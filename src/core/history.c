@@ -2,17 +2,17 @@
 
 // keep ply in data here?
 // RETIRED
-Undo* getUndoFromMove(Board* b, Move move) {
+// Undo* getUndoFromMove(Board* b, Move move) {
 
-    Undo* undo = calloc(1, sizeof(Undo));
-    undo->zobrist = b->zobrist;
-    undo->captured = getPieceOnSquare(b, getDst(move));
-    undo->enpassant = getEnPassant(move);
-    undo->castling_rights = getCastlingRights(b->gamestate);
-    undo->halftime = getHalfmoveClock(b->gamestate);
+//     Undo* undo = calloc(1, sizeof(Undo));
+//     undo->zobrist = b->zobrist;
+//     undo->captured = getPieceOnSquare(b, getDst(move));
+//     undo->enpassant = getEnPassant(move);
+//     undo->castling_rights = getCastlingRights(b->gamestate);
+//     undo->halftime = getHalfmoveClock(b->gamestate);
 
-    return undo;
-}
+//     return undo;
+// }
 
 
 void performUndo(Board* b, Undo64 undo) {
@@ -140,11 +140,6 @@ void performUndo(Board* b, Undo64 undo) {
     updateBoardUnions(b);
     return;
 
-}
-
-void unmove(Board* b, Move move) {
-    Undo64 undo = createUndo64(move, b->gamestate);
-    performUndo(b, undo);
 }
 
 // commands:

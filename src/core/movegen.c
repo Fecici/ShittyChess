@@ -65,7 +65,7 @@ uint64_t generateWhitePawnMoves(Board* b, Square src) {
     moves |= leftCaptures | rightCaptures;
 
     // en passant captures
-    Square epSquare = getEnPassant(b->gamestate);
+    Square epSquare = getEnPassantSquare(b->gamestate);
     if (epSquare) {
         uint64_t epMask = squareBitboards[epSquare];
         uint64_t leftEPCaptures = (pawn << 7) & epMask & ~fileH;  // en passant capture to the left (from white's perspective)
@@ -87,7 +87,7 @@ uint64_t generateWhitePawnAttacks(Board* b, Square src) {
     uint64_t rightCaptures = (pawn << 9) & ~fileA;  // capture to the right (from white's perspective)
     moves |= leftCaptures | rightCaptures;
 
-    Square epSquare = getEnPassant(b->gamestate);
+    Square epSquare = getEnPassantSquare(b->gamestate);
     if (epSquare) {
         uint64_t epMask = squareBitboards[epSquare];
         uint64_t leftEPCaptures = (pawn << 7) & epMask & ~fileH;  // en passant capture to the left (from white's perspective)
@@ -102,8 +102,6 @@ uint64_t generateWhitePawnAttacks(Board* b, Square src) {
 uint64_t generateWhiteKnightMoves(Board* b, Square src) {
     // apply blockers later
     uint64_t moves = 0;
-
-    uint64_t whiteKnight = b->bitboards[iWN] & squareBitboards[src];
     
     moves |= precomputedKnightmoves[src];  // add precomputed moves
     moves &= ~b->boardUnions[0];  // block white pieces
@@ -219,8 +217,8 @@ uint64_t generateWhiteKingMoves(Board* b, Square src) {
     if (src == e1) {
         Gamestate gamestate = b->gamestate;
         uint64_t emptySquares = ~b->boardUnions[2];
-        if (canWhiteCastleShort(gamestate) && (emptySquares & (f1_mask | g1_mask) == (f1_mask | g1_mask))) moves |= squareBitboards[g1];
-        if (canWhiteCastleLong (gamestate) && (emptySquares & (b1_mask | c1_mask | d1_mask) == (b1_mask | c1_mask | d1_mask))) moves |= squareBitboards[c1];
+        if (canWhiteCastleShort(gamestate) && ((emptySquares & (f1_mask | g1_mask)) == (f1_mask | g1_mask))) moves |= squareBitboards[g1];
+        if (canWhiteCastleLong (gamestate) && ((emptySquares & (b1_mask | c1_mask | d1_mask)) == (b1_mask | c1_mask | d1_mask))) moves |= squareBitboards[c1];
     }
 
     return moves & ~b->boardUnions[WHITE];
@@ -262,7 +260,7 @@ uint64_t generateBlackPawnMoves(Board* b, Square src) {
     moves |= leftCaptures | rightCaptures;
 
     // en passant captures
-    Square epSquare = getEnPassant(b->gamestate);
+    Square epSquare = getEnPassantSquare(b->gamestate);
     if (epSquare) {
         uint64_t epMask = squareBitboards[epSquare];
         uint64_t leftEPCaptures = (pawn >> 9) & epMask & ~fileH;  // en passant capture to the left (from black's perspective)
@@ -280,16 +278,16 @@ uint64_t generateBlackPawnAttacks(Board* b, Square src) {
     uint64_t pawn = blackPawns & squareBitboards[src];
 
     // captures
-    uint64_t leftCaptures = (pawn << 9) & ~fileH;  // capture to the left (from black's perspective)
-    uint64_t rightCaptures = (pawn << 7) & ~fileA;  // capture to the right (from black's perspective)
+    uint64_t leftCaptures = (pawn >> 9) & ~fileH;  // capture to the left (from black's perspective)
+    uint64_t rightCaptures = (pawn >> 7) & ~fileA;  // capture to the right (from black's perspective)
     moves |= leftCaptures | rightCaptures;
 
     // en passant captures
-    Square epSquare = getEnPassant(b->gamestate);
+    Square epSquare = getEnPassantSquare(b->gamestate);
     if (epSquare) {
         uint64_t epMask = squareBitboards[epSquare];
-        uint64_t leftEPCaptures = (pawn >> 7) & epMask & ~fileH;  // en passant capture to the left (from black's perspective)
-        uint64_t rightEPCaptures = (pawn >> 9) & epMask & ~fileA;  // en passant capture to the right (from black's perspective)
+        uint64_t leftEPCaptures = (pawn >> 9) & epMask & ~fileH;  // en passant capture to the left (from black's perspective)
+        uint64_t rightEPCaptures = (pawn >> 7) & epMask & ~fileA;  // en passant capture to the right (from black's perspective)
         moves |= leftEPCaptures | rightEPCaptures;
     }
 
@@ -299,8 +297,6 @@ uint64_t generateBlackPawnAttacks(Board* b, Square src) {
 uint64_t generateBlackKnightMoves(Board* b, Square src) {
     // apply blockers later
     uint64_t moves = 0;
-
-    uint64_t blackKnight = b->bitboards[iBN] & squareBitboards[src];
     
     moves |= precomputedKnightmoves[src];  // add precomputed moves
     moves &= ~b->boardUnions[1];  // block black pieces
@@ -414,8 +410,8 @@ uint64_t generateBlackKingMoves(Board* b, Square src) {
     if (src == e8) {
         Gamestate gamestate = b->gamestate;
         uint64_t emptySquares = ~b->boardUnions[2];
-        if (canBlackCastleShort(gamestate) && (emptySquares & (f8_mask | g8_mask)) == (f8_mask | g8_mask)) moves |= squareBitboards[g8];
-        if (canBlackCastleLong (gamestate) && (emptySquares & (b8_mask | c8_mask | d8_mask)) == (b8_mask | c8_mask | d8_mask)) moves |= squareBitboards[c8];
+        if (canBlackCastleShort(gamestate) && ((emptySquares & (f8_mask | g8_mask)) == (f8_mask | g8_mask))) moves |= squareBitboards[g8];
+        if (canBlackCastleLong (gamestate) && ((emptySquares & (b8_mask | c8_mask | d8_mask)) == (b8_mask | c8_mask | d8_mask))) moves |= squareBitboards[c8];
     }
 
     return moves & ~b->boardUnions[BLACK];
