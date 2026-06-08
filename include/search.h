@@ -8,6 +8,7 @@
 #include "movegen.h"
 #include "history.h"
 #include "legal.h"
+#include "printUtils.h"
 
 uint64_t perft(Board* b, int depth);
 void perft_wrapper(Board* b, int depth);
