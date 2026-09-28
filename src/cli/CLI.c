@@ -102,9 +102,19 @@ void cliMainLoop(Game* g, void (*performCommand)(Board* b)) {
 
     printBoard(game->board);
 
+    bool playingEngine = true;
+
     while (true) {
 
         if (terminationDebug) (checkTermination(game->board));
+
+        if (playingEngine && isBlackToMove(game->board->gamestate)) {
+            cmd_engine(1, (char**) 0);
+            Move mv = getEngineMove(game->board, 5);
+            makeMove(game->board, mv);
+            printBoard(game->board);
+            continue;
+        }
 
         getInput(input, (size_t) MAX_STDIN);
 

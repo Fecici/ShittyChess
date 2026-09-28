@@ -45,6 +45,7 @@ int cmd_att(int argc, char** argv);
 int cmd_pins(int argc, char** argv);
 int cmd_checkers(int argc, char** argv);
 int cmd_board(int argc, char** argv);
+int cmd_engine(int argc, char** argv);
 
 
 void handleResign(Board* b);

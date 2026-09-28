@@ -23,7 +23,8 @@ CommandAbstract cmds[] = {
     {.name = "atk", .cmd = cmd_att},
     {.name = "pins", .cmd = cmd_pins},
     {.name = "checkers", .cmd = cmd_checkers},
-    {.name = "board", .cmd = cmd_board}
+    {.name = "board", .cmd = cmd_board},
+    {.name = "engine", .cmd = cmd_engine}
 
 };
 
@@ -80,6 +81,39 @@ CommandAbstract* getCommand(char input[], int nCmds) {
     }
 
     return NULL;
+
+}
+
+int cmd_engine(int argc, char** argv) {
+
+    Board* b = game->board;
+
+    int depth = 5;
+
+    for (int i = 1; i < argc; i++) {
+        if (strncmp(argv[i], "-d", 2) == 0) {
+            if (i + 1 < argc) {
+                depth = strtol(argv[++i], NULL, 10);
+                if (depth <= 0 || depth > MAX_DEPTH) {
+                    fprintf(stderr, "Error: Invalid depth: %d\n", depth);
+                    return 1;
+                }
+
+                Move move = getEngineMove(b, depth);
+                printf("%s -> %s\n", squareChar[getSrc(move)], squareChar[getDst(move)]);
+                return 0;
+
+
+            } else {
+                fprintf(stderr, "-d option requires depth\n");
+                return 1;
+            }
+        }
+    }
+
+    Move move = getEngineMove(b, depth);
+    printf("%s -> %s\n", squareChar[getSrc(move)], squareChar[getDst(move)]);
+    return 0;
 
 }
 
@@ -312,6 +346,14 @@ int cmd_resign(int argc, char** argv) {
 }
 
 int cmd_help(int argc, char** argv) {
+
+    /*
+    -a or default print all
+
+    given a name, match to a cmd and print that.
+
+    keep a repo of help tips owned by each cmd
+    */
     (void) argc;
     (void) argv;
     return 0;

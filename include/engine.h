@@ -15,5 +15,10 @@ typedef struct {
 } Engine;
 
 
+Move getEngineMove(Board* b, int depth);
+int alphaBetaMax(int alpha, int beta, int depth, Board* b);
+int alphaBetaMin(int alpha, int beta, int depth, Board* b);
+
+
 
 #endif

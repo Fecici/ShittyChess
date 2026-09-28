@@ -9,6 +9,7 @@
 #include <string.h>
 #include <ctype.h>
 #include <time.h>
+#include <limits.h>
 
 // MACROS AND DEFS
 #define MAX_PLY 0x7FFF

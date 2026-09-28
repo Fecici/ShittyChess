@@ -27,6 +27,7 @@ uint64_t perft(Board* b, int depth) {
 
     return count;
 }
+
 void perft_root(Board* b, int depth) {
     Move moves[MAX_MOVES] = {0};
     uint64_t total = 0;

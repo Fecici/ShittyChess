@@ -6,17 +6,20 @@ int evaluateBoard(Board* b) {
 
     int eval = 0;  // int for faster eval
 
+    int black_flip = 1;
+    int offset = 0;
+
+    if (isBlackToMove(b->gamestate)) {
+        black_flip = -1;
+        offset = 6;
+    }
+
     // piece values
 
-    for (int i = 0; i < 12; i++) {
-        uint64_t bitboard = b->bitboards[i];
-        while (bitboard) {
-            //int square = __builtin_ctzll(bitboard);  // get index of least significant bit
-            eval += (victim_value[i % 6] * (i < 6 ? 1 : -1));  // add value for white pieces, subtract for black pieces
-            bitboard &= bitboard - 1;  // clear least significant bit
-
-            // Using __builtin_popcountll(bitboard) * value is simpler and faster than clearing every bit individually
-        }
+    for (int i = 0; i < 6; i++) {
+        uint64_t bitboard = b->bitboards[i + offset];
+        long val = black_flip * __builtin_popcountll(bitboard) * victim_value[i];
+        eval += val;
     }
 
     return eval;
